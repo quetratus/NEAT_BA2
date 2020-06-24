@@ -10,12 +10,12 @@ import sys
 pygame.init()
 
 # sound
-# musicfile = "level.mp3"
-# pygame.init()
-# pygame.mixer.init()
-# pygame.mixer.music.load(musicfile)
-# pygame.mixer.music.play()
-# pygame.event.wait()
+musicfile = "level.mp3"
+pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load(musicfile)
+pygame.mixer.music.play(loops=-1)
+pygame.event.wait()
 
 # set up screen
 scr_size = (width, height) = (852, 610)
