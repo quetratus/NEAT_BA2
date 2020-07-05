@@ -3,6 +3,7 @@ import random
 from pygame import *
 from pygame.locals import *
 import os
+import random
 import sys
 
 
@@ -10,7 +11,21 @@ import sys
 pygame.init()
 
 # sound
-musicfile = "level.mp3"
+musicselect = random.randint(1,3)
+# randomly determines music and background
+# TODO
+# einer von den hintergründen wird seltsam dargestellt; ich ruf dich da noch an
+# sachen die noch "TODO" sind habe ich mit dem schlagwort markiert damit es leichter zu finden ist
+# bei mir kommt der out of index fehler NUR wenn ich sterbe
+if musicselect == 1:
+    musicfile = "happy.mp3"
+    bground = "bg_happy.png"
+if musicselect == 2:
+    musicfile = "somber.mp3"
+    bground = "bg_somber.png"
+if musicselect == 3:
+    musicfile = "rock.mp3"
+    bground = "bg_rock.png"
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(musicfile)
@@ -88,8 +103,8 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
 class Background():
     def __init__(self, speed=-5):
-        self.image, self.rect = load_image('bg_mit_platform.png', -1, -1, -1)
-        self.image1, self.rect1 = load_image('bg_mit_platform1.png', -1, -1, -1)
+        self.image, self.rect = load_image(bground, -1, -1, -1)
+        self.image1, self.rect1 = load_image(bground, -1, -1, -1)
         self.rect.bottom = height
         self.rect1.bottom = height
         self.rect1.left = self.rect.right
@@ -210,7 +225,7 @@ class Snowman(pygame.sprite.Sprite):
 class PlatformUp1 (pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image, self.rect = load_image('platformUp1.png', 220, 95, -1)
+        self.image, self.rect = load_image('platformUp1_outline.png', 220, 95, -1)
         self.speed = 4
         self.rect.left = x
         self.rect.top = y
@@ -228,7 +243,7 @@ class PlatformUp1 (pygame.sprite.Sprite):
 class Platformup2 (PlatformUp1):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image, self.rect = load_image('platformUp2.png', 160, 100, -1)
+        self.image, self.rect = load_image('platformUp2_outline.png', 160, 100, -1)
         self.speed = 4
         self.rect.left = x
         self.rect.top = y
@@ -367,7 +382,12 @@ def gameplay():
             # increase speed by time
             if frame%800 == 799:
                 gamespeed += 1
-
+                # TODO
+                # scorecounter += 1
+                # Müsste man halt nur noch irgendwo anzeigen...
+                # if gamespeed = ?:
+                    # gamespeed = (?-1)
+                    # Maximalgeschwindigkeitsgrenze
             frame = (frame + 1)
 
         if gameQuit:
