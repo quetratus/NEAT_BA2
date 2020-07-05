@@ -240,6 +240,7 @@ class PlatformUp1 (pygame.sprite.Sprite):
             self.kill()
 
 
+# TODO: Diese scheiß Platform wird irgendwie verkehrt dargestellt, er WILL die Outline einfach nicht darstellen ._.
 class Platformup2 (PlatformUp1):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self, self.containers)
