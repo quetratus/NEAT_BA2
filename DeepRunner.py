@@ -25,7 +25,7 @@ if musicselect == 2:
     bground = "bg_somber.png"
 if musicselect == 3:
     musicfile = "rock.mp3"
-    bground = "bg_rock.png"
+    bground = "animated_night.png"
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(musicfile)
