@@ -389,6 +389,12 @@ def gameplay():
                 # if gamespeed = ?:
                     # gamespeed = (?-1)
                     # Maximalgeschwindigkeitsgrenze
+                # TODO: ACHTUNG: Der Hintergrund muss sich auch schneller bewegen mit der Zeit,
+                # sonst sieht es aus, als würden die Gegner "schliddern" (da sie sich schneller als der Hintergrund
+                # bewegen).
+                # TODO: Die Häufigkeit, mit der Hindernisse abgerufen werden, muss sich erhöhen, weil: Wenn die
+                # Gegner sich superschnell bewegen, kommen sie gefühlt viel seltener, da länger garkeine im Bild
+                # sind.
             frame = (frame + 1)
 
         if gameQuit:
