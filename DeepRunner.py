@@ -1,3 +1,12 @@
+# provisorischer code für textausgabe:
+# def show_score(x, y):
+#     score_value = 0
+#     score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+#     screen.blit(score, (x, y))
+#
+# save-funktion: https://stackoverflow.com/questions/6420311/how-to-make-save-load-game-functions-in-pygame
+# textausgabe: https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
+
 # Sliding: Mehrere Frames/Animation
 # Hohe Hindernisse: Neu zeichnen (Vögel)
 # Out of index-Fehler (Modulo 4?)
