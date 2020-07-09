@@ -1,3 +1,8 @@
+# ALS ALLERERSTES TO DO:
+# textausgabe im intro-screen:
+# eingaben (1 - 4 = hintergründe, 5 = easy, 6 = hard mode)
+# UND DRUNTER: Highscore
+# UND NOCHMAL DRUNTER: debugging-wertausgaben (frames, indizes...)
 # provisorischer code für textausgabe:
 # def show_score(x, y):
 #     score_value = 0
