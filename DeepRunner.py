@@ -13,7 +13,6 @@
 # Game Over-Screen programmieren
 
 import pygame
-import random
 from pygame import *
 from pygame.locals import *
 import os
@@ -40,7 +39,7 @@ if musicselect == 2:
 if musicselect == 3:
     musicfile = "rock.mp3"
     bground = "cropped_gif.gif"
-pygame.init()
+
 pygame.mixer.init()
 pygame.mixer.music.load(musicfile)
 pygame.mixer.music.play(loops=-1)
@@ -54,7 +53,7 @@ gravity = 0.6
 
 black = (0, 0, 0)
 white = (255, 255, 255)
-background_col = (235, 235, 235)
+background_col = (230, 230, 235)
 
 screen = pygame.display.set_mode(scr_size)
 pygame.display.set_caption("DeepRunner_V2")
@@ -64,6 +63,7 @@ highscore = 0
 clock = pygame.time.Clock()
 
 pygame.time.set_timer(USEREVENT + 1, random.randrange(1500, 3000))
+
 
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
     fullname = os.path.join('img', name)
@@ -114,6 +114,13 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
     return sprites, sprite_rect
 
+def gameOver_message(gameover_image):
+    gameover_rect =gameover_image.get_rect()
+    gameover_rect.centerx = width / 2
+    gameover_rect.centery = height * 0.35
+
+    screen.blit(gameover_image, gameover_rect)
+
 
 class Background():
     def __init__(self, speed=-5):
@@ -146,7 +153,6 @@ class Background():
 #       self.speed = speed
 #        self.rect.bottom = 610
 #       self.rect1.bottom = 610
-
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
@@ -270,6 +276,10 @@ def introscreen():
     temp_penguin.isWaiting = True
     gameStart = False
 
+    temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1)
+    temp_ground_rect.left = width
+    temp_ground_rect.right = height*0.83
+
     while not gameStart:
         if pygame.display.get_surface() == None:
             print('Fehler beim Laden auf des Spiels. Versuchen es Sie bitte nochmal')
@@ -279,7 +289,7 @@ def introscreen():
                 if event.type == pygame.QUIT:
                     return True
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                    if event.key == pygame.K_SPACE:
                         temp_penguin.isJumping = True
                         temp_penguin.isWaiting = False
                         temp_penguin.movement[1] = -1*temp_penguin.jumpSpeed
@@ -288,13 +298,15 @@ def introscreen():
 
         if pygame.display.get_surface() != None:
             screen.fill(background_col)
+            screen.blit(temp_ground, temp_ground_rect)
             temp_penguin.draw()
 
             pygame.display.update()
 
             clock.tick(FPS)
-            if temp_penguin.isJumping == False and temp_penguin.isWaiting == False:
-                gameStart = True
+            if temp_penguin.isWaiting == False:
+                if temp_penguin.isJumping == False:
+                    gameStart = True
 
 
 def gameplay():
@@ -312,6 +324,8 @@ def gameplay():
     PlatformUp1.containers = platformUp1
     platformUp2 = pygame.sprite.Group()
     platformUp2.containers = platformUp2
+
+    gameover_image, gameover_rect = load_image('gameover1.png', -1, -1, -1)
 
     while not gameQuit:
         while not gameOver:
@@ -415,22 +429,28 @@ def gameplay():
             break
 
         while gameOver:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    gameQuit = True
-                    gameOver = False
+            if pygame.display.get_surface() == None:
+                print("Fehler aufgetreten")
+                gameQuit = True
+                gameOver = False
+            else:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        gameQuit = True
+                        gameOver = False
 
-                else:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            gameQuit = True
-                            gameOver = False
+                    else:
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                gameQuit = True
+                                gameOver = False
 
-                        if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                            gameOver = False
-                            gameplay()
-
+                            if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                                gameOver = False
+                                gameplay()
+            # highsc.update(high_score)
             if pygame.display.get_surface() != None:
+                gameOver_message(gameover_image)
                 pygame.display.update()
             clock.tick(FPS)
 
@@ -443,9 +463,5 @@ def main():
         gameplay()
 
 main()
-
-
-
-
 
 
