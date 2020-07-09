@@ -24,8 +24,11 @@ import random
 import sys
 
 
+
 # start up pygame
 pygame.init()
+
+global musicfile
 
 # sound
 musicselect = random.randint(1, 4)
@@ -34,18 +37,6 @@ musicselect = random.randint(1, 4)
 # einer von den hintergründen wird seltsam dargestellt; ich ruf dich da noch an
 # sachen die noch "TODO" sind habe ich mit dem schlagwort markiert damit es leichter zu finden ist
 # bei mir kommt der out of index fehler NUR wenn ich sterbe
-if musicselect == 1:
-    musicfile = "happy.mp3"
-    bground = "bg_happy.png"
-if musicselect == 2:
-    musicfile = "somber.mp3"
-    bground = "bg_somber.png"
-if musicselect == 3:
-    musicfile = "rock.mp3"
-    bground = "cropped_gif.gif"
-if musicselect == 4:
-    musicfile = "somber.mp3"
-    bground = "Snow_Night2.png"
 
 # set up screen
 scr_size = (width, height) = (852, 610)
@@ -161,25 +152,25 @@ class Background():
 
 class Titelpingi():
             def __init__(self, sizex=-1, sizey=-1):
-                self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, 1)
-                self.rect.bottom = int(300)
+                self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, -1)
+                self.rect.bottom = int(height)
                 self.rect.left = int(1)
-                self.image = self.images[0]
                 self.index = 0
+                self.image = self.images[self.index]
                 self.frame = 0
                 self.isWaiting = False
 
             def draw(self):
                 screen.blit(self.image, self.rect)
 
+
             def update(self):
                 if self.frame % 5 == 0:
-                    self.index = (self.index + 1)%5
-                self.frame = (self.frame + 1)
+                    self.index = (self.index + 1) % 5
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('jump5.png', 5, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
+        self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
         self.images1, self.rect1 = load_sprite_sheet('slide.png', 2, 1, sizex, sizey, -1)
         self.rect.bottom = int(0.83*height)
         self.rect.left = width/15
@@ -222,7 +213,8 @@ class Penguin():
                 self.index = (self.index + 3) % 4
 
         if self.isDead:
-            self.index = 4
+            if not self.isDucking:
+                self.index = 5
 
         if not self.isDucking:
             self.image = self.images[self.index]
@@ -300,12 +292,17 @@ def introscreen():
 
     pygame.mixer.music.stop
 
+    clock.tick(FPS)
+
+    global bground
+    bground = "cropped_gif.gif"
+    musicfile = "rock.mp3"
     titelpinguin = Titelpingi(346, 310)
     titelpinguin.isWaiting = True
 
-    # temp_penguin = pygame.sprite.Group()
-    # temp_penguin.containers = Titelpingi
-
+    global difficulty
+    difficulty = 1
+    schwerer = 0
 
     gameStart = False
 
@@ -323,22 +320,30 @@ def introscreen():
                     return True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        # temp_penguin.isJumping = True
                         pygame.mixer.init()
                         pygame.mixer.music.load(musicfile)
                         pygame.mixer.music.play(loops=-1)
                         pygame.event.wait()
+                        difficulty += schwerer
                         gameStart = True
                         titelpinguin.isWaiting = False
                         # temp_penguin.movement[1] = -1*temp_penguin.jumpSpeed
                     if event.key == pygame.K_1:
                             bground = "bg_happy.png"
+                            musicfile = "happy.mp3"
                     if event.key == pygame.K_2:
                             bground = "bg_somber.png"
+                            musicfile = "somber.mp3"
                     if event.key == pygame.K_3:
                             bground = "cropped_gif.gif"
+                            musicfile = "rock.mp3"
                     if event.key == pygame.K_4:
                             bground = "Snow_Night2.png"
+                            musicfile = "somber.mp3"
+                    if event.key == pygame.K_5:
+                        schwerer = 0
+                    if event.key == pygame.K_6:
+                        schwerer = 0.2
 
         titelpinguin.update()
 
@@ -348,10 +353,6 @@ def introscreen():
             titelpinguin.draw()
 
             pygame.display.update()
-
-            clock.tick(FPS)
-            if titelpinguin.isWaiting == False:
-                gameStart = True
 
 
 def gameplay():
@@ -455,7 +456,7 @@ def gameplay():
 
             # increase speed by time
             if frame%800 == 799:
-                gamespeed += 1
+                gamespeed += difficulty
                 # TODO
                 # scorecounter += 1
                 # Müsste man halt nur noch irgendwo anzeigen...
