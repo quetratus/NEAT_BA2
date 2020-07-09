@@ -263,8 +263,8 @@ def introscreen():
     gameStart = False
 
     temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1)
-    temp_ground_rect.left = width
-    temp_ground_rect.right = height*0.83
+    temp_ground_rect.bottom = int(0.87*height)
+    temp_ground_rect.left = width/15
 
     while not gameStart:
         if pygame.display.get_surface() == None:
@@ -303,6 +303,8 @@ def gameplay():
     playerPenguin = Penguin(72, 64)
     scrollingBg = Background(-1*gamespeed)
     frame = 0
+ #   scoreboard = Scoreboard()
+#    highsc = Scoreboard (width*0.78)
 
     snowman = pygame.sprite.Group()
     Snowman.containers = snowman
