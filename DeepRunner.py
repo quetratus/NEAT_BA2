@@ -1,3 +1,17 @@
+# Sliding: Mehrere Frames/Animation
+# Hohe Hindernisse: Neu zeichnen (Vögel)
+# Out of index-Fehler (Modulo 4?)
+# Sound-Effekte
+# Animationsgeschwindigkeit
+# Titelscreen zeichnen
+# Bonusitems zeichnen
+# Bonusitems programmieren
+# Score erfassen
+# Score anzeigen
+# (Schneemänner: Transparenz angleichen (Augen sind transparent))
+# Game Over-Screen zeichnen
+# Game Over-Screen programmieren
+
 import pygame
 import random
 from pygame import *
@@ -136,7 +150,7 @@ class Background():
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('jump5.png', 5, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('jump5.png', 5, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
         self.images1, self.rect1 = load_sprite_sheet('slide.png', 2, 1, sizex, sizey, -1)
         self.rect.bottom = int(0.83*height)
         self.rect.left = width/15
