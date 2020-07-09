@@ -11,6 +11,10 @@
 # (Schneemänner: Transparenz angleichen (Augen sind transparent))
 # Game Over-Screen zeichnen
 # Game Over-Screen programmieren
+# 1. im titelscreen highscore anzeigen
+# 2. "1 for easy, 2 for hard"
+# 3. im game over screen "space to replay, esc to go to title screen"
+# 4. im game over screen high score anzeigen
 
 import pygame
 from pygame import *
@@ -24,7 +28,7 @@ import sys
 pygame.init()
 
 # sound
-musicselect = random.randint(1,3)
+musicselect = random.randint(1, 4)
 # randomly determines music and background
 # TODO
 # einer von den hintergründen wird seltsam dargestellt; ich ruf dich da noch an
@@ -39,11 +43,9 @@ if musicselect == 2:
 if musicselect == 3:
     musicfile = "rock.mp3"
     bground = "cropped_gif.gif"
-
-pygame.mixer.init()
-pygame.mixer.music.load(musicfile)
-pygame.mixer.music.play(loops=-1)
-pygame.event.wait()
+if musicselect == 4:
+    musicfile = "somber.mp3"
+    bground = "Snow_Night2.png"
 
 # set up screen
 scr_size = (width, height) = (852, 610)
@@ -63,7 +65,6 @@ highscore = 0
 clock = pygame.time.Clock()
 
 pygame.time.set_timer(USEREVENT + 1, random.randrange(1500, 3000))
-
 
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
     fullname = os.path.join('img', name)
@@ -121,11 +122,14 @@ def gameOver_message(gameover_image):
 
     screen.blit(gameover_image, gameover_rect)
 
-
 class Background():
     def __init__(self, speed=-5):
-        self.image, self.rect = load_image(bground, -1, -1, -1)
-        self.image1, self.rect1 = load_image(bground, -1, -1, -1)
+        if bground == "Snow_Night2.png":
+            self.image, self.rect = load_image(bground, -1, -1)
+            self.image1, self.rect1 = load_image(bground, -1, -1)
+        if bground != "Snow_Night2.png":
+            self.image, self.rect = load_image(bground, -1, -1, 1)
+            self.image1, self.rect1 = load_image(bground, -1, -1, 1)
         self.rect.bottom = height
         self.rect1.bottom = height
         self.rect1.left = self.rect.right
@@ -153,6 +157,25 @@ class Background():
 #       self.speed = speed
 #        self.rect.bottom = 610
 #       self.rect1.bottom = 610
+
+
+class Titelpingi():
+            def __init__(self, sizex=-1, sizey=-1):
+                self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, 1)
+                self.rect.bottom = int(300)
+                self.rect.left = int(1)
+                self.image = self.images[0]
+                self.index = 0
+                self.frame = 0
+                self.isWaiting = False
+
+            def draw(self):
+                screen.blit(self.image, self.rect)
+
+            def update(self):
+                if self.frame % 5 == 0:
+                    self.index = (self.index + 1)%5
+                self.frame = (self.frame + 1)
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
@@ -272,13 +295,23 @@ class Platformup2 (PlatformUp1):
 
 
 def introscreen():
-    temp_penguin = Penguin(144, 128)
-    temp_penguin.isWaiting = True
+    #temp_penguin = Penguin(144, 128)
+    #temp_penguin.isWaiting = True
+
+    pygame.mixer.music.stop
+
+    titelpinguin = Titelpingi(346, 310)
+    titelpinguin.isWaiting = True
+
+    # temp_penguin = pygame.sprite.Group()
+    # temp_penguin.containers = Titelpingi
+
+
     gameStart = False
 
-    temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1)
-    temp_ground_rect.left = width
-    temp_ground_rect.right = height*0.83
+    # temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1) # -1? das ist doch die position
+    # temp_ground_rect.left = width
+    # temp_ground_rect.right = height*0.83
 
     while not gameStart:
         if pygame.display.get_surface() == None:
@@ -289,24 +322,36 @@ def introscreen():
                 if event.type == pygame.QUIT:
                     return True
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        temp_penguin.isJumping = True
-                        temp_penguin.isWaiting = False
-                        temp_penguin.movement[1] = -1*temp_penguin.jumpSpeed
+                    if event.key == pygame.K_RETURN:
+                        # temp_penguin.isJumping = True
+                        pygame.mixer.init()
+                        pygame.mixer.music.load(musicfile)
+                        pygame.mixer.music.play(loops=-1)
+                        pygame.event.wait()
+                        gameStart = True
+                        titelpinguin.isWaiting = False
+                        # temp_penguin.movement[1] = -1*temp_penguin.jumpSpeed
+                    if event.key == pygame.K_1:
+                            bground = "bg_happy.png"
+                    if event.key == pygame.K_2:
+                            bground = "bg_somber.png"
+                    if event.key == pygame.K_3:
+                            bground = "cropped_gif.gif"
+                    if event.key == pygame.K_4:
+                            bground = "Snow_Night2.png"
 
-        temp_penguin.update()
+        titelpinguin.update()
 
         if pygame.display.get_surface() != None:
             screen.fill(background_col)
-            screen.blit(temp_ground, temp_ground_rect)
-            temp_penguin.draw()
+            # screen.blit(temp_ground, temp_ground_rect)
+            titelpinguin.draw()
 
             pygame.display.update()
 
             clock.tick(FPS)
-            if temp_penguin.isWaiting == False:
-                if temp_penguin.isJumping == False:
-                    gameStart = True
+            if titelpinguin.isWaiting == False:
+                gameStart = True
 
 
 def gameplay():
