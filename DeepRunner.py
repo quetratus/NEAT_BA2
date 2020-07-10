@@ -171,25 +171,6 @@ class Background():
 #       self.rect1.bottom = 610
 
 
-class Titelpingi():
-            def __init__(self, sizex=-1, sizey=-1):
-                self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, -1)
-                self.rect.bottom = int(height)
-                self.rect.left = int(1)
-                self.index = 0
-                self.image = self.images[self.index]
-                self.frame = 0
-                self.isWaiting = False
-
-            def draw(self):
-                screen.blit(self.image, self.rect)
-
-
-            def update(self):
-                if self.frame % 5 == 0:
-                    self.index = (self.index + 1) % 5
-
-
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
@@ -255,6 +236,27 @@ class Penguin():
         self.frame = (self.frame + 1)
 
 
+class Titelpingi(Penguin):
+    def __init__(self, sizex=-1, sizey=-1):
+        self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, -1)
+        self.rect.bottom = height
+        self.rect.left = int(1)
+        self.image = self.images[0]
+        self.index = 0
+        self.frame = 0
+        self.speed = 4
+        self.isWaiting = True
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        if self.frame % 9 == 0:
+            self.index = (self.index + 3) % 4
+            self.image = self.images[self.index]
+         #   self.frame = (self.frame + 1)
+
+
 class Snowman(pygame.sprite.Sprite):
     def __init__(self, speed=4, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
@@ -297,8 +299,6 @@ class PlatformUp1 (pygame.sprite.Sprite):
             self.kill()
 
 
-
-
 class Bird(Snowman):
     def __init__(self, speed=20, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
@@ -310,14 +310,6 @@ class Bird(Snowman):
         self.movement = [-1 * speed, 0]
         self.index = 0
         self.frame = 0
-
-    #    self.rect.left = x
-     #   self.rect.top = y
-      #  self.speed = 4
-     #   self.image = self.images[0]
-     #   self.index = 0
-     #   self.frame = 0
-     #   self.movement = [-1 * self.speed, 0]
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -333,9 +325,6 @@ class Bird(Snowman):
 
 
 def introscreen():
-    #temp_penguin = Penguin(144, 128)
-    #temp_penguin.isWaiting = True
-
 
     clock.tick(FPS)
 
