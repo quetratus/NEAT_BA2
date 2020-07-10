@@ -43,6 +43,9 @@ import sys
 pygame.init()
 
 global musicfile
+pygame.mixer.init()
+pygame.mixer.music.load("titelscreen.mp3")
+pygame.mixer.music.play(loops=-1)
 
 # sound
 musicselect = random.randint(1, 4)
@@ -290,21 +293,37 @@ class PlatformUp1 (pygame.sprite.Sprite):
 
 
 # TODO: Diese scheiß Platform wird irgendwie verkehrt dargestellt, er WILL die Outline einfach nicht darstellen ._.
-class Platformup2 (PlatformUp1):
-    def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image, self.rect = load_image('platformUp2_outline.png', 160, 100, -1)
+class Platformup2 (Snowman):
+    # er holt sich die breite irgendwie falsch, er nimmt die GESAMTE... mal muss das get-ding von snowman nehmen, das von platform1 funktioniert anders
+    def __init__(self, sizex=-1, sizey=-1):
+        # pygame.sprite.Sprite.__init__(self, self.containers)
+        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, sizex, sizey, -1)
         self.speed = 4
-        self.rect.left = x
-        self.rect.top = y
+        self.rect.bottom = int(0.83 * height)
+        self.rect.left = width + self.rect.width
+        self.image = self.images[0]
+        self.index = 0
+        self.frame = 0
+
         self.movement = [-1 * self.speed, 0]
+
+        def draw(self):
+            screen.blit(self.image, self.rect)
+
+        def update(self):
+            if self.frame % 10 == 0:
+                    self.index = (self.index + 1) % 4
+            self.image = self.images[self.index]
+            self.rect = self.rect.move(self.movement)
+            self.frame = (self.frame + 1)
+            if self.rect.right < 0:
+                self.kill()
 
 
 def introscreen():
     #temp_penguin = Penguin(144, 128)
     #temp_penguin.isWaiting = True
 
-    pygame.mixer.music.stop
 
     clock.tick(FPS)
 
@@ -334,7 +353,7 @@ def introscreen():
                     return True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        pygame.mixer.init()
+                        pygame.mixer.music.stop
                         pygame.mixer.music.load(musicfile)
                         pygame.mixer.music.play(loops=-1)
                         pygame.event.wait()
@@ -375,6 +394,7 @@ def gameplay():
     gameOver = False
     gameQuit = False
     playerPenguin = Penguin(72, 64)
+    platformup2 = Platformup2(256, 307)
     scrollingBg = Background(-1*gamespeed)
     frame = 0
 
