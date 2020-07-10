@@ -35,8 +35,6 @@ from pygame import *
 from pygame.locals import *
 import os
 import random
-import sys
-
 
 
 # start up pygame
@@ -123,12 +121,18 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
     return sprites, sprite_rect
 
+
 def gameOver_message(gameover_image):
     gameover_rect =gameover_image.get_rect()
     gameover_rect.centerx = width / 2
     gameover_rect.centery = height * 0.35
 
     screen.blit(gameover_image, gameover_rect)
+
+#def show_score(score, x, y):
+#    score_value = font.render("Score : " + str(score), True, (255, 255, 255))
+#    screen.blit(score_value, (x, y))
+
 
 class Background():
     def __init__(self, speed=-5):
@@ -184,6 +188,7 @@ class Titelpingi():
             def update(self):
                 if self.frame % 5 == 0:
                     self.index = (self.index + 1) % 5
+
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
@@ -266,7 +271,7 @@ class Snowman(pygame.sprite.Sprite):
 
     def update(self):
         if self.frame % 10 == 0:
-            self.index = (self.index+1)%3
+            self.index = (self.index + 1) % 3
         self.image = self.images[self.index]
         self.rect = self.rect.move(self.movement)
         self.frame = (self.frame + 1)
@@ -292,32 +297,39 @@ class PlatformUp1 (pygame.sprite.Sprite):
             self.kill()
 
 
-# TODO: Diese scheiß Platform wird irgendwie verkehrt dargestellt, er WILL die Outline einfach nicht darstellen ._.
-class Platformup2 (Snowman):
-    # er holt sich die breite irgendwie falsch, er nimmt die GESAMTE... mal muss das get-ding von snowman nehmen, das von platform1 funktioniert anders
-    def __init__(self, sizex=-1, sizey=-1):
-        # pygame.sprite.Sprite.__init__(self, self.containers)
-        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, sizex, sizey, -1)
-        self.speed = 4
-        self.rect.bottom = int(0.83 * height)
+
+
+class Bird(Snowman):
+    def __init__(self, speed=20, sizex=-1, sizey=-1):
+        pygame.sprite.Sprite.__init__(self, self.containers)
+        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, 84, 101, -1)
+        self.bird_height = [height * 0.59, height * 0.75, height * 0.82]
+        self.rect.centery = self.bird_height[random.randrange(0, 3)]
         self.rect.left = width + self.rect.width
         self.image = self.images[0]
+        self.movement = [-1 * speed, 0]
         self.index = 0
         self.frame = 0
 
-        self.movement = [-1 * self.speed, 0]
+    #    self.rect.left = x
+     #   self.rect.top = y
+      #  self.speed = 4
+     #   self.image = self.images[0]
+     #   self.index = 0
+     #   self.frame = 0
+     #   self.movement = [-1 * self.speed, 0]
 
-        def draw(self):
-            screen.blit(self.image, self.rect)
+    def draw(self):
+        screen.blit(self.image, self.rect)
 
-        def update(self):
-            if self.frame % 10 == 0:
-                    self.index = (self.index + 1) % 4
-            self.image = self.images[self.index]
-            self.rect = self.rect.move(self.movement)
-            self.frame = (self.frame + 1)
-            if self.rect.right < 0:
-                self.kill()
+    def update(self):
+        if self.frame % 10 == 0:
+            self.index = (self.index + 1) % 3
+        self.image = self.images[self.index]
+        self.rect = self.rect.move(self.movement)
+        self.frame = (self.frame + 1)
+        if self.rect.right < 0:
+            self.kill()
 
 
 def introscreen():
@@ -394,7 +406,6 @@ def gameplay():
     gameOver = False
     gameQuit = False
     playerPenguin = Penguin(72, 64)
-    platformup2 = Platformup2(256, 307)
     scrollingBg = Background(-1*gamespeed)
     frame = 0
 
@@ -402,10 +413,11 @@ def gameplay():
     Snowman.containers = snowman
     platformUp1 = pygame.sprite.Group()
     PlatformUp1.containers = platformUp1
-    platformUp2 = pygame.sprite.Group()
-    platformUp2.containers = platformUp2
+    flyingBird = pygame.sprite.Group()
+    Bird.containers = flyingBird
 
     gameover_image, gameover_rect = load_image('gameover1.png', -1, -1, -1)
+
 
     while not gameQuit:
         while not gameOver:
@@ -440,18 +452,18 @@ def gameplay():
                         if r == 2:
                             PlatformUp1(width, int(0.59 * height))
                         elif r == 3:
-                            Platformup2(width, int(0.59 * height))
+                            Bird(20, 64,64)
                         elif r == 4:
                             pass
 
-            for s in snowman:
-                s.movement[0] = -1*gamespeed
-                if pygame.sprite.collide_mask(playerPenguin, s):
+            for obstacle in snowman or platformUp1:
+                obstacle.movement[0] = -1*gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, obstacle):
                     playerPenguin.isDead = True
 
-            for p in platformUp1 or platformUp2:
-                p.movement[0] = -1 * gamespeed
-                if pygame.sprite.collide_mask(playerPenguin, p):
+            for flying_obstacle in flyingBird:
+                flying_obstacle.movement[0] = -3 * gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, flying_obstacle):
                     playerPenguin.isDead = True
 
             # if len(snowman) < 5 and random.randrange(0, 200) == 5:
@@ -466,14 +478,18 @@ def gameplay():
             scrollingBg.update()
             playerPenguin.update()
             platformUp1.update()
-            platformUp2.update()
+            flyingBird.update()
             snowman.update()
+
 
             if pygame.display.get_surface() != None:
                 screen.fill(background_col)
                 scrollingBg.draw()
                 platformUp1.draw(screen)
-                platformUp2.draw(screen)
+                flyingBird.draw(screen)
+
+             #   if highscore != 0:
+             #       highscore.draw()
                 playerPenguin.draw()
                 snowman.draw(screen)
 
@@ -492,7 +508,6 @@ def gameplay():
             if frame%800 == 799:
                 gamespeed += difficulty
                 # TODO
-                # scorecounter += 1
                 # Müsste man halt nur noch irgendwo anzeigen...
                 # if gamespeed = ?:
                     # gamespeed = (?-1)
@@ -531,6 +546,7 @@ def gameplay():
             # highsc.update(high_score)
             if pygame.display.get_surface() != None:
                 gameOver_message(gameover_image)
+              #  show_score(score, 10, 10)
                 pygame.display.update()
             clock.tick(FPS)
 
