@@ -40,7 +40,6 @@ import random
 # start up pygame
 pygame.init()
 
-global musicfile
 pygame.mixer.init()
 pygame.mixer.music.load("titelscreen.mp3")
 pygame.mixer.music.play(loops=-1)
@@ -329,6 +328,7 @@ def introscreen():
     clock.tick(FPS)
 
     global bground
+    global musicfile
     bground = "cropped_gif.gif"
     musicfile = "rock.mp3"
     titelpinguin = Titelpingi(346, 310)
@@ -534,6 +534,9 @@ def gameplay():
 
                             if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                                 gameOver = False
+                                pygame.mixer.music.stop
+                                pygame.mixer.music.load(musicfile)
+                                pygame.mixer.music.play(loops=-1)
                                 gameplay()
             # highsc.update(high_score)
             if pygame.display.get_surface() != None:
