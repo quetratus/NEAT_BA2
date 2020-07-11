@@ -403,6 +403,7 @@ def gameplay():
     global highscore
     gamespeed = 4
     gameOver = False
+    walkspeed = 0.5
     gameQuit = False
     playerPenguin = Penguin(72, 64)
     scrollingBg = Background(-1*gamespeed)
@@ -431,6 +432,19 @@ def gameplay():
                         gameOver = True
 
                     if event.type == pygame.KEYDOWN:
+
+                        # langsamer laufen
+                        if event.key == pygame.K_LEFT:
+                            if walkspeed >= 0.1:
+                                walkspeed -= 0.1
+                                gamespeed -= 0.1
+
+                        # schneller laufen
+                        if event.key == pygame.K_RIGHT:
+                            if walkspeed <= 0.9:
+                                walkspeed += 0.1
+                                gamespeed += 0.1
+
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
                                 effect = pygame.mixer.Sound("jump.wav")
@@ -512,6 +526,7 @@ def gameplay():
             # increase speed by time
             if frame%800 == 799:
                 gamespeed += difficulty
+                # TODO: maximales gamespeed hier festlegen!!!!!!!!!!!
                 # TODO
                 # Müsste man halt nur noch irgendwo anzeigen...
                 # if gamespeed = ?:
