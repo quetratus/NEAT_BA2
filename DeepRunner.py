@@ -455,7 +455,7 @@ def gameplay():
 
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
-                                if mac = 0:
+                                if mac == 0:
                                     effect = pygame.mixer.Sound("jump.wav")
                                     effect.play()
                                 playerPenguin.isJumping = True
