@@ -487,6 +487,9 @@ def gameplay():
 
             if playerPenguin.isDead:
                 gameOver = True
+                pygame.mixer.music.stop
+                pygame.mixer.music.load("gameover2.mp3")
+                pygame.mixer.music.play(loops=1)
 
                 if playerPenguin.isDead:
                     gameOver = True
