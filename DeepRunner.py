@@ -69,6 +69,7 @@ clock = pygame.time.Clock()
 
 pygame.time.set_timer(USEREVENT + 1, random.randrange(1500, 3000))
 
+
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
     fullname = os.path.join('img', name)
     image = pygame.image.load(fullname)
@@ -159,15 +160,6 @@ class Background():
             self.rect1.left = self.rect.right
 
 
-#class Ground(Background):
-#    def __init__(self, speed):
-#       self.image, self.rect = load_image('groundplatform.png', -1, -1, -1)#
-#     self.image1, self.rect1 = load_image('groundplatform.png', -1, -1, -1)
-#       self.speed = speed
-#        self.rect.bottom = 610
-#       self.rect1.bottom = 610
-
-
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
@@ -241,8 +233,6 @@ class Titelpingi(Penguin):
         self.image = self.images[0]
         self.index = 0
         self.frame = 0
-        self.speed = 4
-        self.isWaiting = True
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -278,30 +268,12 @@ class Snowman(pygame.sprite.Sprite):
             self.kill()
 
 
-class PlatformUp1 (pygame.sprite.Sprite):
-    def __init__(self, x, y):
+class Bird (pygame.sprite.Sprite):
+    def __init__(self, speed=4, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image, self.rect = load_image('platformUp1_outline.png', 220, 95, -1)
-        self.speed = 4
-        self.rect.left = x
-        self.rect.top = y
-        self.movement = [-1 * self.speed, 0]
-
-    def draw(self):
-        screen.blit(self.image, self.rect)
-
-    def update(self):
-        self.rect = self.rect.move(self.movement)
-        if self.rect.right < 0:
-            self.kill()
-
-
-class Bird(Snowman):
-    def __init__(self, speed=20, sizex=-1, sizey=-1):
-        pygame.sprite.Sprite.__init__(self, self.containers)
-        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, 84, 101, -1)
-        self.bird_height = [height * 0.59, height * 0.75, height * 0.82]
-        self.rect.centery = self.bird_height[random.randrange(0, 3)]
+        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, sizex, sizey, -1)
+        self.bird_height = [height * 0.80, height * 0.90]
+        self.rect.bottom = self.bird_height[random.randrange(0, 2)]
         self.rect.left = width + self.rect.width
         self.image = self.images[0]
         self.movement = [-1 * speed, 0]
@@ -317,6 +289,25 @@ class Bird(Snowman):
         self.image = self.images[self.index]
         self.rect = self.rect.move(self.movement)
         self.frame = (self.frame + 1)
+        if self.rect.right < 0:
+            self.kill()
+
+
+class Fish(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self, self.containers)
+        self.image, self.rect = load_image('fisch.png', x, y, -1)
+        self.fish_height = [height * 0.59, height * 0.75, height * 0.82]
+        self.rect.bottom = self.fish_height[random.randrange(0, 3)]
+        self.rect.left = width + self.rect.width
+        self.speed = 20
+        self.movement = [-1 * self.speed, 0]
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect = self.rect.move(self.movement)
         if self.rect.right < 0:
             self.kill()
 
@@ -419,10 +410,11 @@ def gameplay():
 
     snowman = pygame.sprite.Group()
     Snowman.containers = snowman
-    platformUp1 = pygame.sprite.Group()
-    PlatformUp1.containers = platformUp1
     flyingBird = pygame.sprite.Group()
     Bird.containers = flyingBird
+    fish = pygame.sprite.Group()
+    Fish.containers = fish
+
 
     gameover_image, gameover_rect = load_image('gameover1.png', -1, -1, -1)
 
@@ -455,7 +447,7 @@ def gameplay():
 
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
-                                if mac = 0:
+                                if mac == 0:
                                     effect = pygame.mixer.Sound("jump.wav")
                                     effect.play()
                                 playerPenguin.isJumping = True
@@ -474,34 +466,26 @@ def gameplay():
                         if 0 <= r <= 1:
                             Snowman(gamespeed, 64, 64)
                         if r == 2:
-                            PlatformUp1(width, int(0.59 * height))
+                            Fish(45, 25)
                         elif r == 3:
-                            Bird(20, 64,64)
+                            Bird(gamespeed, 84, 101)
                         elif r == 4:
                             pass
 
-            for obstacle in snowman or platformUp1:
+            for obstacle in snowman or flyingBird:
                 obstacle.movement[0] = -1*gamespeed
                 if pygame.sprite.collide_mask(playerPenguin, obstacle):
                     playerPenguin.isDead = True
 
-            for flying_obstacle in flyingBird:
-                flying_obstacle.movement[0] = -3 * gamespeed
-                if pygame.sprite.collide_mask(playerPenguin, flying_obstacle):
-                    playerPenguin.isDead = True
+            for value in fish:
+                value.movement[0] = -3 * gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, value):
+                    playerPenguin.isDead = False
 
-            # if len(snowman) < 5 and random.randrange(0, 200) == 5:
-               # Snowman(gamespeed, 64, 64)
-
-           # if len(platformUp1) < 5 and random.randrange(0, 300) == 10 and frame > 100:
-             #   PlatformUp1(width, int(0.59*height))
-
-          #  if len(platformUp2) < 5 and random.randrange(0, 300) == 10:
-           #     Platformup2(width, random.randrange(height / 5, height / 2))
 
             scrollingBg.update()
             playerPenguin.update()
-            platformUp1.update()
+            fish.update()
             flyingBird.update()
             snowman.update()
 
@@ -509,7 +493,7 @@ def gameplay():
             if pygame.display.get_surface() != None:
                 screen.fill(background_col)
                 scrollingBg.draw()
-                platformUp1.draw(screen)
+                fish.draw(screen)
                 flyingBird.draw(screen)
 
              #   if highscore != 0:
