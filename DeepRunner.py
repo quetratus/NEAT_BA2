@@ -431,7 +431,7 @@ def gameplay():
                         gameOver = True
 
                     if event.type == pygame.KEYDOWN:
-                        if event.key ==pygame.K_SPACE:
+                        if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
                                 effect = pygame.mixer.Sound("jump.wav")
                                 effect.play()
@@ -499,6 +499,7 @@ def gameplay():
 
             if playerPenguin.isDead:
                 gameOver = True
+                pygame.mixer.init()
                 pygame.mixer.music.stop
                 pygame.mixer.music.load("gameover2.mp3")
                 pygame.mixer.music.play(loops=1)
