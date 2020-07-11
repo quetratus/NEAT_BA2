@@ -45,8 +45,6 @@ pygame.mixer.music.load("titelscreen.mp3")
 pygame.mixer.music.play(loops=-1)
 
 # sound
-musicselect = random.randint(1, 4)
-# randomly determines music and background
 # TODO
 # einer von den hintergründen wird seltsam dargestellt; ich ruf dich da noch an
 # sachen die noch "TODO" sind habe ich mit dem schlagwort markiert damit es leichter zu finden ist
@@ -329,8 +327,20 @@ def introscreen():
 
     global bground
     global musicfile
-    bground = "cropped_gif.gif"
-    musicfile = "rock.mp3"
+    musicselect = random.randint(1, 4)
+    if musicselect == 1:
+        bground = "bg_happy.png"
+        musicfile = "happy.mp3"
+    if musicselect == 2:
+        bground = "bg_somber.png"
+        musicfile = "somber.mp3"
+    if musicselect == 3:
+        bground = "cropped_gif.gif"
+        musicfile = "rock.mp3"
+    if musicselect == 4:
+        bground = "Snow_Night2.png"
+        musicfile = "somber.mp3"
+
     titelpinguin = Titelpingi(346, 310)
     titelpinguin.isWaiting = True
 
@@ -423,6 +433,8 @@ def gameplay():
                     if event.type == pygame.KEYDOWN:
                         if event.key ==pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
+                                effect = pygame.mixer.Sound("jump.wav")
+                                effect.play()
                                 playerPenguin.isJumping = True
                                 playerPenguin.movement[1] = -1*playerPenguin.jumpSpeed
 
