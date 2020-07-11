@@ -131,7 +131,7 @@ def show_highscore(highscore, x, y):
     screen.blit(highscore_value, (x, y))
 
 class Background():
-    def __init__(self, speed=-5):
+    def __init__(self, gamespeed):
         if bground == "Snow_Night2.png":
             self.image, self.rect = load_image(bground, -1, -1)
             self.image1, self.rect1 = load_image(bground, -1, -1)
@@ -141,7 +141,7 @@ class Background():
         self.rect.bottom = height
         self.rect1.bottom = height
         self.rect1.left = self.rect.right
-        self.speed = speed
+        self.speed = gamespeed
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -161,8 +161,7 @@ class Background():
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump5+die1.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
-        self.images1, self.rect1 = load_sprite_sheet('slide.png', 2, 1, sizex, sizey, -1)
-        self.images2, self.rect = load_image('penguin_die.png', 72, 64, -1)
+        self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
 
         self.rect.bottom = int(0.83*height)
         self.rect.left = width/15
@@ -215,6 +214,9 @@ class Penguin():
         if self.isDead:
             if not self.isDucking:
                 self.index = 5
+            else:
+                self.index = 3
+
 
         if not self.isDucking:
             self.image = self.images[self.index]
@@ -253,7 +255,7 @@ class Titelpingi(Penguin):
 
 
 class Snowman(pygame.sprite.Sprite):
-    def __init__(self, speed=4, sizex=-1, sizey=-1):
+    def __init__(self, gamespeed, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
         self.images, self.rect = load_sprite_sheet('snowman4.png', 4, 1, sizex, sizey, -1)
         self.rect.bottom = int(0.83 * height)
@@ -261,7 +263,7 @@ class Snowman(pygame.sprite.Sprite):
         self.image = self.images[0]
         self.index = 0
         self.frame = 0
-        self.movement = [-1 * speed, 0]
+        self.movement = [-1 * gamespeed, 0]
 
     def draw(self):
         screen.blit(self.image, self.rect)
