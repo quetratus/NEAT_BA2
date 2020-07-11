@@ -345,6 +345,8 @@ def introscreen():
     titelpinguin.isWaiting = True
 
     global difficulty
+    global mac
+    mac = 1
     difficulty = 1
     schwerer = 0
 
@@ -388,6 +390,12 @@ def introscreen():
                         schwerer = 0
                     if event.key == pygame.K_6:
                         schwerer = 0.2
+                    if event.key == pygame.K_7:
+                        if mac == 1:
+                            mac = 0
+                    if event.key == pygame.K_8:
+                        if mac == 0:
+                            mac = 1
 
         titelpinguin.update()
 
@@ -447,8 +455,9 @@ def gameplay():
 
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
-                                effect = pygame.mixer.Sound("jump.wav")
-                                effect.play()
+                                if mac = 0:
+                                    effect = pygame.mixer.Sound("jump.wav")
+                                    effect.play()
                                 playerPenguin.isJumping = True
                                 playerPenguin.movement[1] = -1*playerPenguin.jumpSpeed
 
