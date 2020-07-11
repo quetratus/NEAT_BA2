@@ -127,10 +127,15 @@ def gameOver_message(gameover_image):
 
     screen.blit(gameover_image, gameover_rect)
 
-#def show_score(score, x, y):
-#    score_value = font.render("Score : " + str(score), True, (255, 255, 255))
-#    screen.blit(score_value, (x, y))
+def show_score(score, x, y):
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    score_value = font.render("Score : " + str(score), True, (255, 255, 255))
+    screen.blit(score_value, (x, y))
 
+def show_highscore(highscore, x, y):
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    highscore_value = font.render("Highscore : " + str(highscore), True, (255, 255, 255))
+    screen.blit(highscore_value, (x, y))
 
 class Background():
     def __init__(self, speed=-5):
@@ -174,15 +179,19 @@ class Penguin():
         self.isJumping = False
         self.isDead = False
         self.isDucking = False
-        self.isWaiting = False
         self.movement = [0, 0]
         self.jumpSpeed = 12
+        self.newFish = False
+
 
         self.stand_pos_width = self.rect.width
         self.duck_pos_width = self.rect1.width
 
     def draw(self):
         screen.blit(self.image, self.rect)
+        show_score(self.score, 10, 10)
+        if highscore != 0:
+            show_highscore(highscore, 10, 40)
 
     def checkbounds(self):
         if self.rect.bottom > int(0.83*height):
@@ -190,10 +199,14 @@ class Penguin():
             self.isJumping = False
 
     def update(self):
+        if self.newFish:
+            self.score+=10
+            self.newFish = False
+
         if self.isJumping:
             self.movement[1] = self.movement[1] + gravity
 
-        if self.isJumping or self.isWaiting:
+        if self.isJumping:
             self.index = 0
 
         elif self.isDucking:
@@ -219,7 +232,7 @@ class Penguin():
         self.rect = self.rect.move(self.movement)
         self.checkbounds()
 
-        if not self.isDead and self.frame % 7 == 6 and self.isWaiting == False:
+        if not self.isDead and self.frame % 7 == 6:
             self.score += 1
 
         self.frame = (self.frame + 1)
@@ -333,7 +346,6 @@ def introscreen():
         musicfile = "somber.mp3"
 
     titelpinguin = Titelpingi(852, 610)
-    titelpinguin.isWaiting = True
 
     global difficulty
     global mac
@@ -363,8 +375,6 @@ def introscreen():
                         pygame.event.wait()
                         difficulty += schwerer
                         gameStart = True
-                        titelpinguin.isWaiting = False
-                        # temp_penguin.movement[1] = -1*temp_penguin.jumpSpeed
                     if event.key == pygame.K_1:
                             bground = "bg_happy.png"
                             musicfile = "happy.mp3"
@@ -390,9 +400,7 @@ def introscreen():
 
         if pygame.display.get_surface() != None:
             screen.fill(background_col)
-            # screen.blit(temp_ground, temp_ground_rect)
             titelpinguin.draw()
-
             pygame.display.update()
 
 
@@ -466,22 +474,25 @@ def gameplay():
                         if r == 2:
                             Fish(45, 25)
                         elif r == 3:
-                            Bird(gamespeed, 84, 101)
+                            Bird(gamespeed, 78, 94)
                         elif r == 4:
                             pass
 
-            for obstacle in snowman or flyingBird:
-                obstacle.movement[0] = -1*gamespeed
-                if pygame.sprite.collide_mask(playerPenguin, obstacle):
+            for s in snowman:
+                s.movement[0] = -1*gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, s):
                     playerPenguin.isDead = True
 
-            for value in fish:
-                value.movement[0] = -3 * gamespeed
-                if pygame.sprite.collide_mask(playerPenguin, value):
-                    playerPenguin.isDead = False
-                    fish.remove(value)
-                    # score += 1
+            for b in flyingBird:
+                b.movement[0] = -1 * gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, b):
+                    playerPenguin.isDead = True
 
+            for f in fish:
+                f.movement[0] = -3 * gamespeed
+                if pygame.sprite.collide_mask(playerPenguin, f):
+                    fish.remove(f)
+                    playerPenguin.newFish = True
 
             scrollingBg.update()
             playerPenguin.update()
@@ -495,9 +506,6 @@ def gameplay():
                 scrollingBg.draw()
                 fish.draw(screen)
                 flyingBird.draw(screen)
-
-             #   if highscore != 0:
-             #       highscore.draw()
                 playerPenguin.draw()
                 snowman.draw(screen)
 
@@ -562,7 +570,6 @@ def gameplay():
             # highsc.update(high_score)
             if pygame.display.get_surface() != None:
                 gameOver_message(gameover_image)
-              #  show_score(score, 10, 10)
                 pygame.display.update()
             clock.tick(FPS)
 
