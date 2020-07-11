@@ -160,8 +160,10 @@ class Background():
 
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
+        self.images, self.rect = load_sprite_sheet('jump5+die1.png', 6, 1, sizex, sizey, -1)  # 5 = wieviele objekte auf x-achse, 1 = y-achse, -1 = color-key-transparenz
         self.images1, self.rect1 = load_sprite_sheet('slide.png', 2, 1, sizex, sizey, -1)
+        self.images2, self.rect = load_image('penguin_die.png', 72, 64, -1)
+
         self.rect.bottom = int(0.83*height)
         self.rect.left = width/15
         self.image = self.images[0]
