@@ -227,7 +227,7 @@ class Penguin():
 
 class Titelpingi(Penguin):
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('anim_sprites_8.png', 7, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('neutitle.png', 7, 1, sizex, sizey, -1)
         self.rect.bottom = height
         self.rect.left = int(1)
         self.image = self.images[0]
@@ -296,7 +296,7 @@ class Bird (pygame.sprite.Sprite):
 class Fish(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image, self.rect = load_image('fisch.png', x, y, -1)
+        self.image, self.rect = load_image('fisch3.png', x, y, -1)
         self.fish_height = [height * 0.59, height * 0.75, height * 0.82]
         self.rect.bottom = self.fish_height[random.randrange(0, 3)]
         self.rect.left = width + self.rect.width
@@ -332,12 +332,12 @@ def introscreen():
         bground = "Snow_Night2.png"
         musicfile = "somber.mp3"
 
-    titelpinguin = Titelpingi(346, 310)
+    titelpinguin = Titelpingi(852, 610)
     titelpinguin.isWaiting = True
 
     global difficulty
     global mac
-    mac = 1
+    mac = 0
     difficulty = 1
     schwerer = 0
 
@@ -377,16 +377,14 @@ def introscreen():
                     if event.key == pygame.K_4:
                             bground = "Snow_Night2.png"
                             musicfile = "somber.mp3"
-                    if event.key == pygame.K_5:
+                    if event.key == pygame.K_e:
                         schwerer = 0
-                    if event.key == pygame.K_6:
+                    if event.key == pygame.K_d:
                         schwerer = 0.2
-                    if event.key == pygame.K_7:
-                        if mac == 1:
-                            mac = 0
-                    if event.key == pygame.K_8:
-                        if mac == 0:
-                            mac = 1
+                    if event.key == pygame.K_n:
+                        mac = 0
+                    if event.key == pygame.K_s:
+                        mac = 1
 
         titelpinguin.update()
 
@@ -447,7 +445,7 @@ def gameplay():
 
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
-                                if mac == 0:
+                                if mac == 1:
                                     effect = pygame.mixer.Sound("jump.wav")
                                     effect.play()
                                 playerPenguin.isJumping = True
