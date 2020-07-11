@@ -237,7 +237,7 @@ class Penguin():
 
 class Titelpingi(Penguin):
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('anim_sprites.png', 5, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('anim_sprites_8.png', 7, 1, sizex, sizey, -1)
         self.rect.bottom = height
         self.rect.left = int(1)
         self.image = self.images[0]
@@ -250,10 +250,10 @@ class Titelpingi(Penguin):
         screen.blit(self.image, self.rect)
 
     def update(self):
-        if self.frame % 9 == 0:
-            self.index = (self.index + 3) % 4
+        if self.frame % 100 == 0:
+            self.index = (self.index + 1) % 7
             self.image = self.images[self.index]
-         #   self.frame = (self.frame + 1)
+        self.frame = (self.frame + 1)
 
 
 class Snowman(pygame.sprite.Sprite):
