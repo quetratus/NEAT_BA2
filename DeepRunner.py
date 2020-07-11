@@ -479,6 +479,8 @@ def gameplay():
                 value.movement[0] = -3 * gamespeed
                 if pygame.sprite.collide_mask(playerPenguin, value):
                     playerPenguin.isDead = False
+                    fish.remove(value)
+                    # score += 1
 
 
             scrollingBg.update()
