@@ -343,7 +343,7 @@ def introscreen():
         musicfile = "rock.mp3"
     if musicselect == 4:
         bground = "Snow_Night2.png"
-        musicfile = "somber.mp3"
+        musicfile = "nacht2.mp3"
 
     titelpinguin = Titelpingi(852, 610)
 
@@ -386,7 +386,7 @@ def introscreen():
                             musicfile = "rock.mp3"
                     if event.key == pygame.K_4:
                             bground = "Snow_Night2.png"
-                            musicfile = "somber.mp3"
+                            musicfile = "nacht2.mp3"
                     if event.key == pygame.K_e:
                         schwerer = 0
                     if event.key == pygame.K_d:
