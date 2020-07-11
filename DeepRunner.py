@@ -3,11 +3,6 @@
 # eingaben (1 - 4 = hintergründe, 5 = easy, 6 = hard mode)
 # UND DRUNTER: Highscore
 # UND NOCHMAL DRUNTER: debugging-wertausgaben (frames, indizes...)
-# provisorischer code für textausgabe:
-# def show_score(x, y):
-#     score_value = 0
-#     score = font.render("Score : " + str(score_value), True, (255, 255, 255))
-#     screen.blit(score, (x, y))
 #
 # save-funktion: https://stackoverflow.com/questions/6420311/how-to-make-save-load-game-functions-in-pygame
 # textausgabe: https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
@@ -23,8 +18,6 @@
 # Score erfassen
 # Score anzeigen
 # (Schneemänner: Transparenz angleichen (Augen sind transparent))
-# Game Over-Screen zeichnen
-# Game Over-Screen programmieren
 # 1. im titelscreen highscore anzeigen
 # 2. "1 for easy, 2 for hard"
 # 3. im game over screen "space to replay, esc to go to title screen"
@@ -328,7 +321,6 @@ class Fish(pygame.sprite.Sprite):
 def introscreen():
 
     clock.tick(FPS)
-
     global bground
     global musicfile
     musicselect = random.randint(1, 4)
@@ -354,6 +346,7 @@ def introscreen():
     schwerer = 0
 
     gameStart = False
+
 
     # temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1) # -1? das ist doch die position
     # temp_ground_rect.left = width
@@ -421,9 +414,7 @@ def gameplay():
     fish = pygame.sprite.Group()
     Fish.containers = fish
 
-
     gameover_image, gameover_rect = load_image('gameover1.png', -1, -1, -1)
-
 
     while not gameQuit:
         while not gameOver:
@@ -438,7 +429,6 @@ def gameplay():
                         gameOver = True
 
                     if event.type == pygame.KEYDOWN:
-
                         # langsamer laufen
                         if event.key == pygame.K_LEFT:
                             if walkspeed >= 0.1:
@@ -567,7 +557,7 @@ def gameplay():
                                 pygame.mixer.music.load(musicfile)
                                 pygame.mixer.music.play(loops=-1)
                                 gameplay()
-            # highsc.update(high_score)
+                                
             if pygame.display.get_surface() != None:
                 gameOver_message(gameover_image)
                 pygame.display.update()
