@@ -55,7 +55,17 @@ highscore = 0
 clock = pygame.time.Clock()
 
 # sets intervall for obstacles
-pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
+gamespeed = 0
+if gamespeed == 0:
+    pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
+if gamespeed != 0:
+    pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500) / (gamespeed/(startgamespeed*boost))
+    # start gamespeed = 4. if gamespeed is twice as fast, obstacles appear twice as often
+    # TODO: Notieren: Wieviele Punkte hat man wenn man ohne schneller laufen zum ersten mal gamespeed = maximum hat?
+    # ab dieser punktezahl wird die variable boost, die zuvor auf 1 stand, auf einen wert über 1 gesetzt: tempo erhöht sich weiter
+    # => es kommen öfter gegner
+    # prüfen: worst case, wenn die zufallszahlen ungünstig fallen: kann man überhaupt noch allem ausweichen?
+    # evtl. über frames machen?
 
 # create graphical objects (non-animated and animated respectively)
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
@@ -247,7 +257,7 @@ class Penguin():
 
         # score increases every 1/4 second
         if not self.isDead and self.frame % 10 == 0:
-            self.score += 1
+            self.score += difficulty
 
         # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
         self.frame = (self.frame + 1)
@@ -350,6 +360,10 @@ def introscreen():
     # initialize clock
     clock.tick(FPS)
     global bground
+    global boost
+    boost = 1
+    global startgamespeed
+    startgamespeed = 4
     global musicfile
     global debug
     debug = 0
@@ -411,7 +425,7 @@ def introscreen():
                     if event.key == pygame.K_e:
                         schwerer = 0
                     if event.key == pygame.K_d:
-                        schwerer = 0.2
+                        schwerer = 0.5
                     if event.key == pygame.K_n:
                         sfx = 0
                     if event.key == pygame.K_s:
@@ -465,17 +479,17 @@ def gameplay():
                     if event.type == pygame.KEYDOWN:
                         # langsamer laufen
                         if event.key == pygame.K_LEFT:
-                            if walkspeed >= 0.1:
-                                walkspeed -= 0.1
-                                gamespeed -= 0.1
+                            if walkspeed >= 0.5:
+                                walkspeed -= 0.5
+                                gamespeed -= 0.5
 
                         # schneller laufen
                         if event.key == pygame.K_RIGHT:
-                            if walkspeed <= 3.9:
-                                walkspeed += 0.1
-                                gamespeed += 0.1
-                                if gamespeed > 12:
-                                    gamespeed = 12
+                            if walkspeed <= 3.5:
+                                walkspeed += 0.5
+                                gamespeed += 0.5
+                                if gamespeed > (12 * difficulty):
+                                    gamespeed = (12 * difficulty)
 
                         if event.key == pygame.K_ESCAPE:
                             gameQuit = True
@@ -560,8 +574,8 @@ def gameplay():
             # increase speed by time
             if frame%800 == 799:
                 gamespeed += difficulty
-                if gamespeed > 12:
-                    gamespeed = 12
+                if gamespeed > (12 * difficulty):
+                    gamespeed = (12 * difficulty)
                 # TODO: Die Häufigkeit, mit der Hindernisse abgerufen werden, muss sich erhöhen, weil: Wenn die
                 # Gegner sich superschnell bewegen, kommen sie gefühlt viel seltener, da länger garkeine im Bild
                 # sind.
