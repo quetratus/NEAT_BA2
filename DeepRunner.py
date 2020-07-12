@@ -57,7 +57,7 @@ pygame.display.set_caption("DeepRunner_V2")
 FPS = 40
 black = (0, 0, 0)
 white = (255, 255, 255)
-background_col = (0, 255, 255)
+background_col = (230, 230, 235)
 
 # set gravity and highscore
 gravity = 0.6
@@ -134,7 +134,6 @@ def gameOver_message(gameover_image):
     gameover_rect =gameover_image.get_rect()
     gameover_rect.centerx = width / 2
     gameover_rect.centery = height * 0.35
-
     screen.blit(gameover_image, gameover_rect)
 
 
@@ -287,7 +286,7 @@ class Penguin():
 # Title screen graphics
 class Titelpingi(Penguin):
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('neutitle.png', 7, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('neutitle2.png', 7, 1, sizex, sizey, -1)
         self.rect.bottom = height
         self.rect.left = int(1)
         self.image = self.images[0]
@@ -488,9 +487,6 @@ def introscreen():
                         sfx = 1
                     if event.key == pygame.K_x:
                         debug = 1
-                    if event.key == pygame.K_h:
-                       # isWaiting = True
-                        highscoreScreen()
 
         titelpinguin.update()
 
@@ -502,8 +498,6 @@ def introscreen():
 
 def gameplay():
     gameStart = True
-    global flagpole
-    flagpole = 0
     global gamespeed
     gamespeed = 4
     global highscore
@@ -636,11 +630,10 @@ def gameplay():
 
             if playerPenguin.isDead:
                 gameOver = True
-                if flagpole == 0:
-                    pygame.mixer.init()
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load("gameover2.mp3")
-                    pygame.mixer.music.play(loops=1)
+                pygame.mixer.init()
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load("gameover2.mp3")
+                pygame.mixer.music.play(loops=1)
 
             if playerPenguin.isDead:
                 gameOver = True
@@ -675,13 +668,6 @@ def gameplay():
                    # else:
 
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            pygame.mixer.music.stop()
-                            gameQuit = True
-                            gameOver = True
-                            #    playerPenguin.isDead = False
-                           #     flagpole = 99
-                            introscreen()
 
                         if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                             gameOver = False
