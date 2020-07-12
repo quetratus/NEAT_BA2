@@ -78,13 +78,6 @@ if gamespeed == 0:
 if gamespeed > 0:
     pygame.time.set_timer(USEREVENT + 1, int(random.randrange(2000, 3500) / (gamespeed/startgamespeed)))
 
-    # start gamespeed = 4. if gamespeed is twice as fast, obstacles appear twice as often
-    # TODO: Notieren: Wieviele Punkte hat man wenn man ohne schneller laufen zum ersten mal gamespeed = maximum hat?
-    # ab dieser punktezahl wird die variable boost, die zuvor auf 1 stand, auf einen wert über 1 gesetzt: tempo erhöht sich weiter
-    # => es kommen öfter gegner
-    # prüfen: worst case, wenn die zufallszahlen ungünstig fallen: kann man überhaupt noch allem ausweichen?
-    # evtl. über frames machen?
-
 # create graphical objects (non-animated and animated respectively)
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
     fullname = os.path.join('img', name)
@@ -135,6 +128,7 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
     return sprites, sprite_rect
 
+
 # game over screen
 def gameOver_message(gameover_image):
     gameover_rect =gameover_image.get_rect()
@@ -143,16 +137,19 @@ def gameOver_message(gameover_image):
 
     screen.blit(gameover_image, gameover_rect)
 
+
 # show score
 def show_score(score, x, y):
     font = pygame.font.Font('freesansbold.ttf', 20)
     score_value = font.render("Score : " + str(score), True, (255, 255, 255))
     screen.blit(score_value, (x, y))
 
+
 def show_highscore(highscore, x, y):
     font = pygame.font.Font('freesansbold.ttf', 20)
     highscore_value = font.render("Highscore : " + str(highscore), True, (255, 255, 255))
     screen.blit(highscore_value, (x, y))
+
 
 # show debug stuff
 def show_debug(walkspeed, gamespeed, startgamespeed, x, y):
@@ -212,6 +209,7 @@ class Penguin():
         self.isDucking = False
         self.movement = [0, 0]
         self.jumpSpeed = 12
+        self.isWaiting = True
         # if gamespeed <= 17:
         #     self.jumpSpeed = 12
         # if gamespeed > 17:
@@ -225,7 +223,6 @@ class Penguin():
     # draw self & show score
     def draw(self):
         screen.blit(self.image, self.rect)
-        show_score(self.score, 10, 10)
         if highscore != 0:
             show_highscore(highscore, 10, 40)
         # Debug
@@ -247,7 +244,8 @@ class Penguin():
         if self.isJumping:
             self.movement[1] = self.movement[1] + gravity
 
-        if self.isJumping:
+        if self.isJumping or self.isWaiting:
+            self.index = 0
             self.index = 0
 
         # ducking
@@ -280,7 +278,7 @@ class Penguin():
         self.checkbounds()
 
         # score increases every 1/4 second
-        if not self.isDead and self.frame % 10 == 0:
+        if not self.isDead and self.frame % 10 == 0 and self.isWaiting == False:
             self.score += difficulty
 
         # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
@@ -379,8 +377,43 @@ class Fish(pygame.sprite.Sprite):
             self.kill()
 
 
-def introscreen():
+def highscoreScreen():
+    temp_penguin = Penguin(144, 128)
+    temp_penguin.isWaiting = True
+    gameStart = False
 
+    while not gameStart:
+        if pygame.display.get_surface() == None:
+            print('Fehler beim Laden auf des Spiels. Versuchen es Sie bitte nochmal')
+            return True
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                        if event.key == pygame.K_SPACE:
+                            temp_penguin.isWaiting = False
+                            temp_penguin.isJumping = True
+                            temp_penguin.movement[1] = -1 * temp_penguin.jumpSpeed
+
+
+        temp_penguin.update()
+
+        if pygame.display.get_surface() != None:
+            screen.fill(background_col)
+            temp_penguin.draw()
+            show_highscore(highscore, 150, 250)
+
+            pygame.display.update()
+
+            clock.tick(FPS)
+            if temp_penguin.isWaiting == False:
+                if temp_penguin.isJumping == False:
+                    gameStart = True
+
+
+def introscreen():
     # initialize clock
     clock.tick(FPS)
     global bground
@@ -413,7 +446,6 @@ def introscreen():
     sfx = 0
     difficulty = 1
     schwerer = 0
-
     gameStart = False
 
     while not gameStart:
@@ -455,8 +487,8 @@ def introscreen():
                     if event.key == pygame.K_x:
                         debug = 1
                     if event.key == pygame.K_h:
-                        show_highscore()
-
+                       # isWaiting = True
+                        highscoreScreen()
 
         titelpinguin.update()
 
@@ -467,6 +499,7 @@ def introscreen():
             pygame.display.update()
 
 def gameplay():
+    gameStart = True
     global flagpole
     flagpole = 0
     global gamespeed
@@ -478,6 +511,8 @@ def gameplay():
     walkspeed = 0.5
     gameQuit = False
     playerPenguin = Penguin(72, 64)
+    playerPenguin.isDead = False
+    playerPenguin.isWaiting = False
     # scrolling of background to the left
     scrollingBg = Background(-1*gamespeed)
     frame = 0
@@ -592,6 +627,7 @@ def gameplay():
                 flyingBird.draw(screen)
                 playerPenguin.draw()
                 snowman.draw(screen)
+                show_score(playerPenguin.score, 10, 10)
 
                 pygame.display.update()
             clock.tick(FPS)
@@ -604,10 +640,11 @@ def gameplay():
                     pygame.mixer.music.load("gameover2.mp3")
                     pygame.mixer.music.play(loops=1)
 
-                if playerPenguin.isDead:
-                    gameOver = True
-                    if playerPenguin.score > highscore:
-                        highscore = playerPenguin.score
+            if playerPenguin.isDead:
+                gameOver = True
+                gameOver_message(gameover_image)
+                if playerPenguin.score > highscore:
+                    highscore = playerPenguin.score
 
             # increase speed by time
             if frame%800 == 799:
@@ -631,29 +668,27 @@ def gameplay():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         gameQuit = True
-                        gameOver = False
+                        gameOver = True
 
-                    else:
-                        if flagpole == 99:
+                   # else:
+
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            pygame.mixer.music.stop()
+                            gameQuit = True
+                            gameOver = True
+                            #    playerPenguin.isDead = False
+                           #     flagpole = 99
+                            introscreen()
+
+                        if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                            gameOver = False
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.load(musicfile)
+                            pygame.mixer.music.play(loops=-1)
                             gameplay()
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_ESCAPE:
-                                pygame.mixer.music.stop()
-                                gameQuit = False
-                                gameOver = False
-                                playerPenguin.isDead = False
-                                flagpole = 99
-                                introscreen()
-
-                            if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                                gameOver = False
-                                pygame.mixer.music.stop()
-                                pygame.mixer.music.load(musicfile)
-                                pygame.mixer.music.play(loops=-1)
-                                gameplay()
                                 
             if pygame.display.get_surface() != None:
-                gameOver_message(gameover_image)
                 pygame.display.update()
             clock.tick(FPS)
 
