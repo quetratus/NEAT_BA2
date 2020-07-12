@@ -380,6 +380,8 @@ class Fish(pygame.sprite.Sprite):
 def highscoreScreen():
     temp_penguin = Penguin(144, 128)
     temp_penguin.isWaiting = True
+
+
     gameStart = False
 
     while not gameStart:
