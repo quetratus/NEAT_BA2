@@ -1,40 +1,3 @@
-# hintergrund ist noch immer langsamer als andere objekte
-# sprunggeschwindigkeit muss mit (gamespeed - walkspeed) multipliziert werden => effekt: man kann mit walkspeed weiter springen
-
-# mal IMMER schneemänner spawnen lassen, alle 2000 MS: prüfen, ob so bei gamespeed 18 noch "schaffbar"
-
-# der bug war eine fehlende geschlossene klammer in der zeile drüber
-
-# 40 auf 60 FPS: alle modulos mal 1.5
-# Zeilen, in denen Modulo gezogen wird:
-# 234, 239, 249, 262, 283, 284, 304, 305, 329, 332, 334, 578
-# => alle durchgehen und mit 1,5 malnehemen, DANACH DANEBEN KOMMENTAR SETZEN DASS ANGEGLICHEN!
-
-# ALS ALLERERSTES TO DO:
-# textausgabe im intro-screen:
-# eingaben (1 - 4 = hintergründe, 5 = easy, 6 = hard mode)
-# UND DRUNTER: Highscore
-# UND NOCHMAL DRUNTER: debugging-wertausgaben (frames, indizes...)
-#
-# save-funktion: https://stackoverflow.com/questions/6420311/how-to-make-save-load-game-functions-in-pygame
-# textausgabe: https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
-
-# Sliding: Mehrere Frames/Animation
-# Hohe Hindernisse: Neu zeichnen (Vögel)
-# Out of index-Fehler (Modulo 4?)
-# Sound-Effekte
-# Animationsgeschwindigkeit
-# Titelscreen zeichnen
-# Bonusitems zeichnen
-# Bonusitems programmieren
-# Score erfassen
-# Score anzeigen
-# (Schneemänner: Transparenz angleichen (Augen sind transparent))
-# 1. im titelscreen highscore anzeigen
-# 2. "1 for easy, 2 for hard"
-# 3. im game over screen "space to replay, esc to go to title screen"
-# 4. im game over screen high score anzeigen
-
 import pygame
 from pygame import *
 from pygame.locals import *
@@ -77,6 +40,7 @@ if gamespeed == 0:
     pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
 if gamespeed > 0:
     pygame.time.set_timer(USEREVENT + 1, int(random.randrange(2000, 3500) / (gamespeed/startgamespeed)))
+
 
 # create graphical objects (non-animated and animated respectively)
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
@@ -160,6 +124,7 @@ def show_debug(walkspeed, gamespeed, startgamespeed, x, y):
     screen.blit(gamespeed_value, (x, y + 20))
     screen.blit(startgamespeed_value, (x, y + 40))
 
+
 # show background
 class Background():
     def __init__(self, gamespeed):
@@ -188,10 +153,11 @@ class Background():
         if self.rect1.right < 0:
             self.rect1.left = self.rect.right
 
+
 # Player character
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('jump5+die1.png', 6, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)
         self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
 
         # positions character
@@ -282,6 +248,7 @@ class Penguin():
 
         # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
         self.frame = (self.frame + 1)
+
 
 # Title screen graphics
 class Titelpingi(Penguin):
@@ -496,6 +463,7 @@ def introscreen():
             titelpinguin.draw()
             pygame.display.update()
 
+
 def gameplay():
     gameStart = True
     global gamespeed
@@ -646,9 +614,6 @@ def gameplay():
                 gamespeed += difficulty
                 if gamespeed > (12 * difficulty):
                     gamespeed = (12 * difficulty)
-                # TODO: Die Häufigkeit, mit der Hindernisse abgerufen werden, muss sich erhöhen, weil: Wenn die
-                # Gegner sich superschnell bewegen, kommen sie gefühlt viel seltener, da länger garkeine im Bild
-                # sind.
             frame = (frame + 1)
 
         if gameQuit:
@@ -664,8 +629,6 @@ def gameplay():
                     if event.type == pygame.QUIT:
                         gameQuit = True
                         gameOver = True
-
-                   # else:
 
                     if event.type == pygame.KEYDOWN:
 
