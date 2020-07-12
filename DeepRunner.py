@@ -55,7 +55,7 @@ highscore = 0
 clock = pygame.time.Clock()
 
 # sets intervall for obstacles
-pygame.time.set_timer(USEREVENT + 1, random.randrange(1500, 3000))
+pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
 
 # create graphical objects (non-animated and animated respectively)
 def load_image(name: object, sizex: object = -1, sizey: object = -1, colorkey: object = None, ) -> object:
@@ -127,7 +127,12 @@ def show_highscore(highscore, x, y):
     screen.blit(highscore_value, (x, y))
 
 # show debug stuff
-# def show_debut(clock, frame)
+def show_debug(walkspeed, gamespeed, x, y):
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    walkspeed_value = font.render("Walkspeed : " + str(walkspeed), True, (255, 255, 255))
+    gamespeed_value = font.render("Gamespeed: " + str(gamespeed), True, (255, 255, 255))
+    screen.blit(walkspeed_value, (x, y))
+    screen.blit(gamespeed_value, (x, y + 20))
 
 # show background
 class Background():
@@ -161,7 +166,7 @@ class Background():
 class Penguin():
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump5+die1.png', 6, 1, sizex, sizey, -1)
-        self.images1, self.rect1 = load_sprite_sheet('slide.png', 2, 1, sizex, sizey, -1)
+        self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
 
         # positions character
         self.rect.bottom = int(0.83*height)
@@ -189,6 +194,9 @@ class Penguin():
         show_score(self.score, 10, 10)
         if highscore != 0:
             show_highscore(highscore, 10, 40)
+        # WALKSPEED
+        if debug == 1:
+            show_debug(walkspeed, gamespeed, 10, 60)
 
     # collision detection with ground
     def checkbounds(self):
@@ -225,6 +233,7 @@ class Penguin():
             if self.isDucking:
                 self.index = 2
 
+        # normal animation
         if not self.isDucking:
             self.image = self.images[self.index]
             self.rect.width = self.stand_pos_width
@@ -236,9 +245,11 @@ class Penguin():
         self.rect = self.rect.move(self.movement)
         self.checkbounds()
 
-        if not self.isDead and self.frame % 7 == 6:
+        # score increases every 1/4 second
+        if not self.isDead and self.frame % 10 == 0:
             self.score += 1
 
+        # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
         self.frame = (self.frame + 1)
 
 # Title screen graphics
@@ -302,8 +313,12 @@ class Bird (pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
     def update(self):
-        if self.frame % 10 == 0:
-            self.index = (self.index + 1) % 3
+        if self.frame % 6 == 0:
+                # low birds have 1 frame of animation more
+                if self.rect.bottom == (height * 0.90):
+                    self.index = (self.index + 1) % 4
+                if self.rect.bottom != (height * 0.90):
+                    self.index = (self.index + 1) % 3
         self.image = self.images[self.index]
         self.rect = self.rect.move(self.movement)
         self.frame = (self.frame + 1)
@@ -318,7 +333,7 @@ class Fish(pygame.sprite.Sprite):
         self.fish_height = [height * 0.59, height * 0.75, height * 0.82]
         self.rect.bottom = self.fish_height[random.randrange(0, 3)]
         self.rect.left = width + self.rect.width
-        self.speed = 20
+        self.speed = 18
         self.movement = [-1 * self.speed, 0]
 
     def draw(self):
@@ -332,9 +347,14 @@ class Fish(pygame.sprite.Sprite):
 
 def introscreen():
 
+    # initialize clock
     clock.tick(FPS)
     global bground
     global musicfile
+    global debug
+    debug = 0
+
+    # get random stage if none is selected
     musicselect = random.randint(1, 4)
     if musicselect == 1:
         bground = "bg_happy.png"
@@ -349,25 +369,20 @@ def introscreen():
         bground = "Snow_Night2.png"
         musicfile = "nacht2.mp3"
 
+    # screen size
     titelpinguin = Titelpingi(852, 610)
 
     global difficulty
-    global mac
-    global debug
-    mac = 0
+    global sfx
+    sfx = 0
     difficulty = 1
     schwerer = 0
 
     gameStart = False
 
-
-    # temp_ground, temp_ground_rect = load_image('groundplatform.png', -1, -1, -1) # -1? das ist doch die position
-    # temp_ground_rect.left = width
-    # temp_ground_rect.right = height*0.83
-
     while not gameStart:
         if pygame.display.get_surface() == None:
-            print('Fehler beim Laden auf des Spiels. Versuchen es Sie bitte nochmal')
+            print('Fehler beim Laden auf des Spiels. Versuchen Sie es bitte nochmal')
             return True
         else:
             for event in pygame.event.get():
@@ -398,37 +413,41 @@ def introscreen():
                     if event.key == pygame.K_d:
                         schwerer = 0.2
                     if event.key == pygame.K_n:
-                        mac = 0
+                        sfx = 0
                     if event.key == pygame.K_s:
-                        mac = 1
-                    if event.key == pygame.K_d:
+                        sfx = 1
+                    if event.key == pygame.K_x:
                         debug = 1
 
         titelpinguin.update()
 
+        # if all can be loaded, display it
         if pygame.display.get_surface() != None:
             screen.fill(background_col)
             titelpinguin.draw()
             pygame.display.update()
 
-
 def gameplay():
     global highscore
+    if debug == 1:
+        global gamespeed
     gamespeed = 4
     gameOver = False
+    global walkspeed
     walkspeed = 0.5
     gameQuit = False
     playerPenguin = Penguin(72, 64)
+    # scrolling of background to the left
     scrollingBg = Background(-1*gamespeed)
     frame = 0
 
+    # define elements on screen
     snowman = pygame.sprite.Group()
     Snowman.containers = snowman
     flyingBird = pygame.sprite.Group()
     Bird.containers = flyingBird
     fish = pygame.sprite.Group()
     Fish.containers = fish
-
     gameover_image, gameover_rect = load_image('gameover1.png', -1, -1, -1)
 
     while not gameQuit:
@@ -452,13 +471,19 @@ def gameplay():
 
                         # schneller laufen
                         if event.key == pygame.K_RIGHT:
-                            if walkspeed <= 0.9:
+                            if walkspeed <= 3.9:
                                 walkspeed += 0.1
                                 gamespeed += 0.1
+                                if gamespeed > 12:
+                                    gamespeed = 12
+
+                        if event.key == pygame.K_ESCAPE:
+                            gameQuit = True
+                            gameOver = True
 
                         if event.key == pygame.K_SPACE:
                             if playerPenguin.rect.bottom == int(0.83*height):
-                                if mac == 1:
+                                if sfx == 1:
                                     effect = pygame.mixer.Sound("jump.wav")
                                     effect.play()
                                 playerPenguin.isJumping = True
@@ -472,27 +497,30 @@ def gameplay():
                         if event.key == pygame.K_DOWN:
                             playerPenguin.isDucking = False
 
+                    # event trigger
                     if event.type == USEREVENT + 1:
                         r = random.randrange(0, 5)
                         if 0 <= r <= 1:
                             Snowman(gamespeed, 64, 64)
                         if r == 2:
                             Fish(45, 25)
-                        elif r == 3:
+                        if r == 3:
                             Bird(gamespeed, 78, 94)
-                        elif r == 4:
+                        if r == 4:
                             pass
-
+            # loop for each snowman
             for s in snowman:
                 s.movement[0] = -1*gamespeed
                 if pygame.sprite.collide_mask(playerPenguin, s):
                     playerPenguin.isDead = True
 
+            # loop for each bird
             for b in flyingBird:
                 b.movement[0] = -1 * gamespeed
                 if pygame.sprite.collide_mask(playerPenguin, b):
                     playerPenguin.isDead = True
 
+            # loop for each fish
             for f in fish:
                 f.movement[0] = -3 * gamespeed
                 if pygame.sprite.collide_mask(playerPenguin, f):
@@ -532,15 +560,8 @@ def gameplay():
             # increase speed by time
             if frame%800 == 799:
                 gamespeed += difficulty
-                # TODO: maximales gamespeed hier festlegen!!!!!!!!!!!
-                # TODO
-                # Müsste man halt nur noch irgendwo anzeigen...
-                # if gamespeed = ?:
-                    # gamespeed = (?-1)
-                    # Maximalgeschwindigkeitsgrenze
-                # TODO: ACHTUNG: Der Hintergrund muss sich auch schneller bewegen mit der Zeit,
-                # sonst sieht es aus, als würden die Gegner "schliddern" (da sie sich schneller als der Hintergrund
-                # bewegen).
+                if gamespeed > 12:
+                    gamespeed = 12
                 # TODO: Die Häufigkeit, mit der Hindernisse abgerufen werden, muss sich erhöhen, weil: Wenn die
                 # Gegner sich superschnell bewegen, kommen sie gefühlt viel seltener, da länger garkeine im Bild
                 # sind.
