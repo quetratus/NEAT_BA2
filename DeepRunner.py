@@ -1,3 +1,15 @@
+# hintergrund ist noch immer langsamer als andere objekte
+# sprunggeschwindigkeit muss mit (gamespeed - walkspeed) multipliziert werden => effekt: man kann mit walkspeed weiter springen
+
+# mal IMMER schneemänner spawnen lassen, alle 2000 MS: prüfen, ob so bei gamespeed 18 noch "schaffbar"
+
+# der bug war eine fehlende geschlossene klammer in der zeile drüber
+
+# 40 auf 60 FPS: alle modulos mal 1.5
+# Zeilen, in denen Modulo gezogen wird:
+# 234, 239, 249, 262, 283, 284, 304, 305, 329, 332, 334, 578
+# => alle durchgehen und mit 1,5 malnehemen, DANACH DANEBEN KOMMENTAR SETZEN DASS ANGEGLICHEN!
+
 # ALS ALLERERSTES TO DO:
 # textausgabe im intro-screen:
 # eingaben (1 - 4 = hintergründe, 5 = easy, 6 = hard mode)
@@ -55,11 +67,17 @@ highscore = 0
 clock = pygame.time.Clock()
 
 # sets intervall for obstacles
-gamespeed = 0
+
+global startgamespeed
+startgamespeed = 4
+global gamespeed
+gamespeed = 4
+
 if gamespeed == 0:
     pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
-if gamespeed != 0:
-    pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500) / (gamespeed/(startgamespeed*boost))
+if gamespeed > 0:
+    pygame.time.set_timer(USEREVENT + 1, int(random.randrange(2000, 3500) / (gamespeed/startgamespeed)))
+
     # start gamespeed = 4. if gamespeed is twice as fast, obstacles appear twice as often
     # TODO: Notieren: Wieviele Punkte hat man wenn man ohne schneller laufen zum ersten mal gamespeed = maximum hat?
     # ab dieser punktezahl wird die variable boost, die zuvor auf 1 stand, auf einen wert über 1 gesetzt: tempo erhöht sich weiter
@@ -137,12 +155,14 @@ def show_highscore(highscore, x, y):
     screen.blit(highscore_value, (x, y))
 
 # show debug stuff
-def show_debug(walkspeed, gamespeed, x, y):
+def show_debug(walkspeed, gamespeed, startgamespeed, x, y):
     font = pygame.font.Font('freesansbold.ttf', 20)
     walkspeed_value = font.render("Walkspeed : " + str(walkspeed), True, (255, 255, 255))
     gamespeed_value = font.render("Gamespeed: " + str(gamespeed), True, (255, 255, 255))
+    startgamespeed_value = font.render("Startgamespeed: " + str(startgamespeed), True, (255, 255, 255))
     screen.blit(walkspeed_value, (x, y))
     screen.blit(gamespeed_value, (x, y + 20))
+    screen.blit(startgamespeed_value, (x, y + 40))
 
 # show background
 class Background():
@@ -192,6 +212,10 @@ class Penguin():
         self.isDucking = False
         self.movement = [0, 0]
         self.jumpSpeed = 12
+        # if gamespeed <= 17:
+        #     self.jumpSpeed = 12
+        # if gamespeed > 17:
+        #     self.jumpSpeed = 10
         self.gotFish = False
 
         # size of penguin
@@ -204,9 +228,9 @@ class Penguin():
         show_score(self.score, 10, 10)
         if highscore != 0:
             show_highscore(highscore, 10, 40)
-        # WALKSPEED
+        # Debug
         if debug == 1:
-            show_debug(walkspeed, gamespeed, 10, 60)
+            show_debug(walkspeed, gamespeed, startgamespeed, 10, 60)
 
     # collision detection with ground
     def checkbounds(self):
@@ -362,8 +386,6 @@ def introscreen():
     global bground
     global boost
     boost = 1
-    global startgamespeed
-    startgamespeed = 4
     global musicfile
     global debug
     debug = 0
@@ -404,7 +426,7 @@ def introscreen():
                     return True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        pygame.mixer.music.stop
+                        pygame.mixer.music.stop()
                         pygame.mixer.music.load(musicfile)
                         pygame.mixer.music.play(loops=-1)
                         pygame.event.wait()
@@ -432,6 +454,9 @@ def introscreen():
                         sfx = 1
                     if event.key == pygame.K_x:
                         debug = 1
+                    if event.key == pygame.K_h:
+                        show_highscore()
+
 
         titelpinguin.update()
 
@@ -442,10 +467,10 @@ def introscreen():
             pygame.display.update()
 
 def gameplay():
-    global highscore
-    if debug == 1:
-        global gamespeed
+    global gamespeed
     gamespeed = 4
+    global highscore
+    #if debug == 1:
     gameOver = False
     global walkspeed
     walkspeed = 0.5
@@ -500,6 +525,16 @@ def gameplay():
                                 if sfx == 1:
                                     effect = pygame.mixer.Sound("jump.wav")
                                     effect.play()
+
+                                global jumpSpeed
+                                # if gamespeed < 7:
+                                #     playerPenguin.jumpSpeed = 25
+                                # if 7 >= gamespeed < 16:
+                                #     playerPenguin.jumpSpeed = 12
+                                # if 16 <= gamespeed <= 17:
+                                #     playerPenguin.jumpSpeed = 11
+                                # if gamespeed > 17:
+                                #     playerPenguin.jumpSpeed = 10
                                 playerPenguin.isJumping = True
                                 playerPenguin.movement[1] = -1*playerPenguin.jumpSpeed
 
@@ -562,7 +597,7 @@ def gameplay():
             if playerPenguin.isDead:
                 gameOver = True
                 pygame.mixer.init()
-                pygame.mixer.music.stop
+                pygame.mixer.music.stop()
                 pygame.mixer.music.load("gameover2.mp3")
                 pygame.mixer.music.play(loops=1)
 
@@ -598,12 +633,15 @@ def gameplay():
                     else:
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_ESCAPE:
-                                gameQuit = True
+                                pygame.mixer.music.stop()
+                                gameQuit = False
                                 gameOver = False
+                                playerPenguin.isDead = False
+                                introscreen()
 
                             if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                                 gameOver = False
-                                pygame.mixer.music.stop
+                                pygame.mixer.music.stop()
                                 pygame.mixer.music.load(musicfile)
                                 pygame.mixer.music.play(loops=-1)
                                 gameplay()
