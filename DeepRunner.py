@@ -57,7 +57,7 @@ pygame.display.set_caption("DeepRunner_V2")
 FPS = 40
 black = (0, 0, 0)
 white = (255, 255, 255)
-background_col = (230, 230, 235)
+background_col = (0, 255, 255)
 
 # set gravity and highscore
 gravity = 0.6
