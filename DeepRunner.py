@@ -467,6 +467,8 @@ def introscreen():
             pygame.display.update()
 
 def gameplay():
+    global flagpole
+    flagpole = 0
     global gamespeed
     gamespeed = 4
     global highscore
@@ -596,10 +598,11 @@ def gameplay():
 
             if playerPenguin.isDead:
                 gameOver = True
-                pygame.mixer.init()
-                pygame.mixer.music.stop()
-                pygame.mixer.music.load("gameover2.mp3")
-                pygame.mixer.music.play(loops=1)
+                if flagpole == 0:
+                    pygame.mixer.init()
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load("gameover2.mp3")
+                    pygame.mixer.music.play(loops=1)
 
                 if playerPenguin.isDead:
                     gameOver = True
@@ -631,12 +634,15 @@ def gameplay():
                         gameOver = False
 
                     else:
+                        if flagpole == 99:
+                            gameplay()
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_ESCAPE:
                                 pygame.mixer.music.stop()
                                 gameQuit = False
                                 gameOver = False
                                 playerPenguin.isDead = False
+                                flagpole = 99
                                 introscreen()
 
                             if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
