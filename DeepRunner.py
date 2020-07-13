@@ -30,8 +30,8 @@ highscore = 0
 clock = pygame.time.Clock()
 
 global vogel
-vogel = "vogel_crf.png"
-# vogel = "vogel3.png"
+# vogel = "vogel_crf.png"
+vogel = "vogel3.png"
 
 global startgamespeed
 startgamespeed = 4
