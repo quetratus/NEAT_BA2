@@ -298,7 +298,7 @@ class Snowman(pygame.sprite.Sprite):
 class Bird (pygame.sprite.Sprite):
     def __init__(self, gamespeed, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet('vogel_crf.png', 4, 1, sizex, sizey, -1)
         self.bird_height = [height * 0.80, height * 0.90]
         self.rect.bottom = self.bird_height[random.randrange(0, 2)]
         self.rect.left = width + self.rect.width
@@ -555,7 +555,7 @@ def gameplay():
                         if r == 2:
                             Fish(45, 25)
                         if r == 3:
-                            Bird(gamespeed, 78, 94)
+                            Bird(gamespeed, 75, 90)
                         if r == 4:
                             pass
             # loop for each snowman
