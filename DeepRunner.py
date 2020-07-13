@@ -31,6 +31,11 @@ clock = pygame.time.Clock()
 
 # sets intervall for obstacles
 
+
+global vogel
+vogel = "vogel_crf.png"
+# vogel = "vogel3.png"
+
 global startgamespeed
 startgamespeed = 4
 global gamespeed
@@ -298,7 +303,7 @@ class Snowman(pygame.sprite.Sprite):
 class Bird (pygame.sprite.Sprite):
     def __init__(self, gamespeed, sizex=-1, sizey=-1):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.images, self.rect = load_sprite_sheet('vogel_crf.png', 4, 1, sizex, sizey, -1)
+        self.images, self.rect = load_sprite_sheet(vogel, 4, 1, sizex, sizey, -1)
         self.bird_height = [height * 0.80, height * 0.90]
         self.rect.bottom = self.bird_height[random.randrange(0, 2)]
         self.rect.left = width + self.rect.width
@@ -312,11 +317,14 @@ class Bird (pygame.sprite.Sprite):
 
     def update(self):
         if self.frame % 6 == 0:
-                # low birds have 1 frame of animation more
-                if self.rect.bottom == (height * 0.90):
+                # high birds have 1 frame of animation less for the old version
+                if vogel == "vogel3.png":
+                    if self.rect.bottom == (height * 0.90):
+                        self.index = (self.index + 1) % 4
+                    if self.rect.bottom != (height * 0.90):
+                        self.index = (self.index + 1) % 3
+                if vogel == "vogel_crf.png":
                     self.index = (self.index + 1) % 4
-                if self.rect.bottom != (height * 0.90):
-                    self.index = (self.index + 1) % 3
         self.image = self.images[self.index]
         self.rect = self.rect.move(self.movement)
         self.frame = (self.frame + 1)
@@ -555,7 +563,7 @@ def gameplay():
                         if r == 2:
                             Fish(45, 25)
                         if r == 3:
-                            Bird(gamespeed, 75, 90)
+                            Bird(gamespeed, 78, 94)
                         if r == 4:
                             pass
             # loop for each snowman
@@ -628,7 +636,7 @@ def gameplay():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         gameQuit = True
-                        gameOver = True
+                        gameOver = False
 
                     if event.type == pygame.KEYDOWN:
 
@@ -652,5 +660,3 @@ def main():
         gameplay()
 
 main()
-
-
