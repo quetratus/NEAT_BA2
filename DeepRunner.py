@@ -29,9 +29,6 @@ highscore = 0
 # start clock
 clock = pygame.time.Clock()
 
-# sets intervall for obstacles
-
-
 global vogel
 vogel = "vogel_crf.png"
 # vogel = "vogel3.png"
@@ -41,6 +38,7 @@ startgamespeed = 4
 global gamespeed
 gamespeed = 4
 
+# sets intervall for obstacles
 if gamespeed == 0:
     pygame.time.set_timer(USEREVENT + 1, random.randrange(2000, 3500))
 if gamespeed > 0:
