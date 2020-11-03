@@ -1,14 +1,14 @@
 [NEAT]
-# determine the best dino (dino with the highest fitness)
+# determine the best penguin (penguin with the highest fitness)
 fitness_criterion     = max 
-# what number the dino needs to reach, no further generations
+# what number the penguin needs to reach, no further generations
 fitness_threshold     = 150 
 #population size of 1 generation 
 pop_size              = 100
 reset_on_extinction   = False
 
 [DefaultGenome]
-# setting up the starting genomes (starting-value of dino population)
+# setting up the starting genomes (starting-value of penguin population)
 activation_default      = tanh
 activation_mutate_rate  = 0.0
 activation_options      = tanh
