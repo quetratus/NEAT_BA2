@@ -2,9 +2,9 @@
 # determine the best penguin (penguin with the highest fitness)
 fitness_criterion     = max 
 # what number the penguin needs to reach, no further generations
-fitness_threshold     = 150 
+fitness_threshold     = 1000
 #population size of 1 generation 
-pop_size              = 100
+pop_size              = 20
 reset_on_extinction   = False
 
 [DefaultGenome]
