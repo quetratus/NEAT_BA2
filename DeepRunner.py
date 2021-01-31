@@ -6,7 +6,7 @@ import math
 
 
 # create graphical objects (non-animated and animated respectively)
-def load_image(name, sizex= -1, sizey= -1, colorkey= None, ):
+def load_image(name, sizex=-1, sizey=-1, colorkey=None, ):
     fullname = os.path.join('img', name)
     image = pygame.image.load(fullname)
     image = image.convert()
@@ -19,7 +19,7 @@ def load_image(name, sizex= -1, sizey= -1, colorkey= None, ):
     if sizex != -1 or sizey != -1:
         image = pygame.transform.scale(image, (sizex, sizey))
 
-    return (image, image.get_rect())
+    return image, image.get_rect()
 
 
 def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
@@ -55,11 +55,16 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
     return sprites, sprite_rect
 
+
 # show score
-def show_score(score, x, y):
-    font = pygame.font.Font('freesansbold.ttf', 20)
-    score_value = font.render("Score : " + str(score), True, (255, 255, 255))
-    screen.blit(score_value, (x, y))
+def show_score(score, penguins):
+    font = pygame.font.Font('freesansbold.ttf', 18)
+    score_value = font.render("Score : " + str(score), True, WHITE)
+    screen.blit(score_value, (10, 10))
+    score_value = font.render("Gens: " + str(GENERATION - 1), True, WHITE)
+    screen.blit(score_value, (10, 30))
+    score_value = font.render("Alive: " + str(len(penguins)), True,WHITE)
+    screen.blit(score_value, (10, 50))
 
 
 def show_highscore(highscore, x, y):
@@ -80,7 +85,7 @@ def show_debug(walkspeed, gamespeed, startgamespeed, x, y):
 
 
 # show background
-class Background():
+class Background:
     def __init__(self, gamespeed):
         self.image, self.rect = load_image('bg_happy.png', -1, -1, 1)
         self.image1, self.rect1 = load_image('bg_happy.png', -1, -1, 1)
@@ -105,7 +110,7 @@ class Background():
 
 
 # Player character
-class Penguin():
+class Penguin:
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)
         self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
@@ -120,10 +125,10 @@ class Penguin():
         self.frame = 0
         self.isJumping = False
         self.movement = [0, 0]
-        self.jumpSpeed = 12
+        self.jumpSpeed = 10.5
         # size of penguin
-        #self.stand_pos_width = self.rect.width
-        #self.duck_pos_width = self.rect1.width
+        # self.stand_pos_width = self.rect.width
+        # self.duck_pos_width = self.rect1.width
 
     # draw self & show score
     def draw(self, screen):
@@ -141,21 +146,24 @@ class Penguin():
         if self.frame % 5 == 0:
             self.index = (self.index + 1) % 5
         self.image = self.images[self.index]
-        #self.rect.width = self.stand_pos_width
+        # self.rect.width = self.stand_pos_width
         self.rect = self.rect.move(self.movement)
         self.checkbounds()
 
         # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
         self.frame = (self.frame + 1)
 
+    def jump(self):
+        self.movement[1] = -1 * self.jumpSpeed
+        self.isJumping = True
+
     def update(self):
         if self.isJumping:
             self.index = 0
             self.movement[1] = self.movement[1] + GRAVITY
 
-        self.rect = self.rect.move(self.movement)
+        # elf.rect = self.rect.move(self.movement)
         self.checkbounds()
-
 
     def get_mask(self):
         return pygame.mask.from_surface(self.image)
@@ -186,46 +194,73 @@ class Snowman(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
+    def collide(self, penguin):
+        # Checking for collision using get mask function
+        player_mask = penguin.get_mask()
+        obj_mask = pygame.mask.from_surface(self.image)
+        obj_offset = (self.rect.x - penguin.rect.x, self.rect.y - round(penguin.rect.y))
+        collision_point = player_mask.overlap(obj_mask, obj_offset)
+        if collision_point:
+            return True
+        return False
 
-def draw_window(screen, penguins, snowmen, score):
-    for penguin in penguins:
-        penguin.draw(screen)
-    show_score(score, 10, 10)
+
+def draw_window(penguins, snowmen, obj_ind, score):
     for snowman in snowmen:
         snowman.draw(screen)
+        snowman.update()
+    for penguin in penguins:
+        penguin.draw(screen)
+        penguin.update()
+        if DRAW_LINES:
+            try:
+                pygame.draw.line(screen, GREEN, (penguin.rect.right, penguin.rect.centery),
+                                 snowmen[obj_ind].rect.midtop,
+                                 2)
+            finally:
+                pass
+        # draw bird
+    show_score(score, penguins)
+
     pygame.display.update()
 
 
 def main(genomes, config):
+    global GENERATION
+    GENERATION += 1
+    gamespeed = 4
+
     penguins = []
     nets = []
     ge = []
-    gamespeed = 4
+
+    score = 0
+
     # scrolling of background to the left
     scrollingBg = Background(-1 * gamespeed)
-    frame = 0
 
     # List of Genomes
-    for genome_id, genome in genomes:
+    # we need the underscore to loop through the indexes of the genomes
+    for _, genome in genomes:
         genome.fitness = 0  # start with fitness level of 0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
         penguin = (Penguin(72, 64))
         penguins.append(penguin)
+        genome.fitness = 0  # start with fitness level of 0
         ge.append(genome)
 
     # Creating list of obstacle class objects
     snowmen = [Snowman(gamespeed, 64, 64)]
 
     run = True
-
     while run:
         clock.tick(FPS)
-        frame = 0
-        score = 0
+        # frame = 0
+        # frame += 1
         # score increases every 1/4 second
-        if frame % 10 == 0:
-            score += 1
+        # if frame % 10 == 0:
+        # score += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -233,76 +268,102 @@ def main(genomes, config):
                 pygame.quit()
                 quit()
 
+        # snowman index is 0
         obj_ind = 0
         if len(penguins) > 0:
+            # to check which snowman; if penguin passes the first snowman then change index to 1
             if len(snowmen) > 1 and penguins[0].rect.x > snowmen[0].rect.x + snowmen[0].rect.x:
                 obj_ind = 1
         else:
             break
 
         for x, penguin in enumerate(penguins):  # give each penguin a fitness of 0.1 for each frame it stays alive
+            ge[x].fitness += 0.1
             penguin.walk()
-            output = nets[x].activate((penguin.rect.x, abs(penguin.rect.x - snowmen[obj_ind].rect.x)))
+
+            # check for the distance between penguin and the snowman
+            output = nets[penguins.index(penguin)].activate((penguin.rect.x,
+                                                             abs(penguin.rect.right - snowmen[obj_ind].rect.left)))
 
             if output[0] > 0.5:
-                penguin.isJumping = True
-                penguin.movement[1] = -1 * penguin.jumpSpeed
+                penguin.jump()
 
-            add_obs = False
-            rem = []
-            for snowman in snowmen:
-                for x, snowman in enumerate(snowmen):
-                    if pygame.sprite.collide_mask(penguin, snowman):
-                        ge[x].fitness -= 1
-                        penguins.pop(x)
-                        nets.pop(x)
-                        ge.pop(x)
+        add_obs = False
+        rem = []
+
+        for snowman in snowmen:
+            snowman.walk()
+
+            # check for collision
+            for x, penguin in enumerate(penguins):
+            # for x, penguin in enumerate(penguins):
+                if snowman.collide(penguin):
+                    # every time penguin collides we reduce the fitness by -1
+                    # ge[penguins.index(penguin)].fitness -= 1
+                    # nets.pop(penguins.index(penguin))
+                    # ge.pop(penguins.index(penguin))
+                    # penguins.pop(penguins.index(penguin))
+                    ge[x].fitness -= 1
+                    # remove the penguin object
+                    penguins.pop(x)
+                    # remove the neural network associated to this penguin
+                    nets.pop(x)
+                    # remove the neural network associated to this penguuin
+                    ge.pop(x)
+
+            # for removing the obs
+            if snowman.rect.right < 0:
+                rem.append(snowman)
 
             # to see if obs has crossed the player
-                    if not snowman.passed and snowman.rect.x < penguin.rect.x:
-                        snowman.passed = True
-                        add_obs = True
+            if not snowman.passed and snowman.rect.x < penguin.rect.x:
+                snowman.passed = True
+             #   add_obs = True
 
-                    # for removing the obs
-                if snowman.rect.x < 0:
-                    rem.append(snowman)
-                    score += 1
-
-                    for g in ge:
-                        g.fitness += 10
-                snowman.walk()
-
-            if add_obs:
+           # if add_obs:
+                score += 1
+                for g in ge:
+                    g.fitness += 5
                 snowmen.append(Snowman(gamespeed, 64, 64))
+
+            snowman.walk()
 
             # removing obstacles which has crossed
             for r in rem:
                 snowmen.remove(r)
 
-            draw_window(screen, penguins, snowmen, score)
-            penguin.update()
+            for x, penguin in enumerate(penguins):
+                if penguin.rect.top > 605:
+                    nets.pop(x)
+                    ge.pop(x)
+                    penguins.pop(x)
+
+        # penguin.update()
 
         scrollingBg.draw()
         scrollingBg.update()
-        penguin.draw(screen)
-        snowman.draw(screen)
-        #show_score(score, 10, 10)
+        draw_window(penguins, snowmen, obj_ind, score)
+        # for penguin in penguins:
+        # penguin.update()
+        # penguin.draw(screen)
+        # snowman.draw(screen)
+        # show_score(score, 10, 10)
 
         pygame.display.update()
 
         # increase speed by time
-        if frame % 800 == 799:
-            frame = (frame + 1)
+        # if frame % 800 == 799:
+        #    frame = (frame + 1)
 
 
-def run(config_file):
+def run(config_path):
    # runs the NEAT algorithm to train the neural network, and sets location for the config file
     config = neat.config.Config(
         neat.DefaultGenome,
         neat.DefaultReproduction,
         neat.DefaultSpeciesSet,
         neat.DefaultStagnation,
-        config_file
+        config_path
     )
 
     # set up population based on the config file
@@ -313,7 +374,7 @@ def run(config_file):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # call the fitness function and config file 50times
+    # call the fitness function and config file for 50 generations
     winner = p.run(main, 50)
 
     # show final stats

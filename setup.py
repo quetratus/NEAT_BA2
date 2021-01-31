@@ -27,11 +27,12 @@ BLACK = (0, 0, 0)
 FPS = 40
 
 # set gravity and highscore
-GRAVITY = 0.8
+GRAVITY = 2.3
+DRAW_LINES = False
 gamespeed = 4
 startgamespeed = 4
 highscore = 0
 walkspeed = 0.5
 debug = 0
 
-generation = 0
+GENERATION = 0
