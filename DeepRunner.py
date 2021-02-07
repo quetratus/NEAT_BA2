@@ -1,8 +1,5 @@
 from setup import *
-import os
 import neat
-import random
-import math
 
 
 # create graphical objects (non-animated and animated respectively)
@@ -57,7 +54,7 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
 
 # show score
-def show_score(score, penguins):
+def show_score(score, penguins, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode):
     font = pygame.font.Font('freesansbold.ttf', 18)
     score_value = font.render("Score : " + str(score), True, WHITE)
     screen.blit(score_value, (10, 10))
@@ -65,34 +62,23 @@ def show_score(score, penguins):
     screen.blit(score_value, (10, 30))
     score_value = font.render("Alive: " + str(len(penguins)), True,WHITE)
     screen.blit(score_value, (10, 50))
-
-
-def show_highscore(highscore, x, y):
-    font = pygame.font.Font('freesansbold.ttf', 20)
-    highscore_value = font.render("Highscore : " + str(highscore), True, (255, 255, 255))
-    screen.blit(highscore_value, (x, y))
-
-
-# show debug stuff
-def show_debug(walkspeed, gamespeed, startgamespeed, x, y):
-    font = pygame.font.Font('freesansbold.ttf', 20)
-    walkspeed_value = font.render("Walkspeed : " + str(walkspeed), True, (255, 255, 255))
-    gamespeed_value = font.render("Gamespeed: " + str(gamespeed), True, (255, 255, 255))
-    startgamespeed_value = font.render("Startgamespeed: " + str(startgamespeed), True, (255, 255, 255))
-    screen.blit(walkspeed_value, (x, y))
-    screen.blit(gamespeed_value, (x, y + 20))
-    screen.blit(startgamespeed_value, (x, y + 40))
+    score_value = font.render("Penguin x: " + str(x_wert_p) + str(x_wert_rect_p), True, WHITE)
+    screen.blit(score_value, (10, 70))
+    score_value = font.render("Enemy x: " + str(x_wert_e) + str(x_wert_rect_e), True, WHITE)
+    screen.blit(score_value, (10, 90))
+    score_value = font.render("Fehlercode: " + str(fehlercode), True, WHITE)
+    screen.blit(score_value, (10, 110))
 
 
 # show background
 class Background:
-    def __init__(self, gamespeed):
+    def __init__(self, bg_speed):
         self.image, self.rect = load_image('bg_happy.png', -1, -1, 1)
         self.image1, self.rect1 = load_image('bg_happy.png', -1, -1, 1)
         self.rect.bottom = height
         self.rect1.bottom = height
         self.rect1.left = self.rect.right
-        self.speed = gamespeed
+        self.speed = bg_speed
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -114,8 +100,9 @@ class Penguin:
     def __init__(self, sizex=-1, sizey=-1):
         self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)
         self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
-
         # positions character
+        self.rect.bottom = GROUND_LEVEL
+        self.rect.left = X_POSITION
         self.rect.bottom = GROUND_LEVEL
         self.rect.left = X_POSITION
         # animation
@@ -123,126 +110,200 @@ class Penguin:
         self.image1 = self.images1[0]
         self.index = 0
         self.frame = 0
+        self.score = 0
         self.isJumping = False
+        self.isDucking = False
         self.movement = [0, 0]
-        self.jumpSpeed = 10.5
-        # size of penguin
-        # self.stand_pos_width = self.rect.width
-        # self.duck_pos_width = self.rect1.width
+        self.jumpSpeed = 10
+        self.x = self.rect.x
+        self.y = self.rect.y
+        self.stand_pos_width = self.rect.width
+        self.duck_pos_width = self.rect1.width
 
-    # draw self & show score
+    # draw self
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, GREEN, self.rect, 2)
 
-    # collision detection with ground
+    def jump(self):
+        if self.rect.bottom == GROUND_LEVEL:
+            self.isJumping = True
+            self.movement[1] = -1*self.jumpSpeed
+
+    def duck(self):
+        if not self.isJumping:
+            self.isDucking = True
+
+    def unduck(self):
+        self.isDucking = False
+
     def checkbounds(self):
         if self.rect.bottom > GROUND_LEVEL:
             self.rect.bottom = GROUND_LEVEL
             self.isJumping = False
 
-    # status checks (collect item, jump...)
-    def walk(self):
-        # walking animation
-        if self.frame % 5 == 0:
-            self.index = (self.index + 1) % 5
-        self.image = self.images[self.index]
-        # self.rect.width = self.stand_pos_width
-        self.rect = self.rect.move(self.movement)
-        self.checkbounds()
-
-        # advances frame counter every time character is updated (= 40 times per second as per FPS set and clock)
-        self.frame = (self.frame + 1)
-
-    def jump(self):
-        self.movement[1] = -1 * self.jumpSpeed
-        self.isJumping = True
-
-    def update(self):
+    def move(self):
         if self.isJumping:
-            self.index = 0
             self.movement[1] = self.movement[1] + GRAVITY
 
-        # elf.rect = self.rect.move(self.movement)
+        if self.isJumping:
+            self.index = 0
+        # walking animation
+        elif self.isDucking:
+            self.index = (self.index + 1) % 2
+            self.index = 1
+        elif self.frame % 5 == 0:
+                self.index = (self.index + 1) % 5
+
+        if not self.isDucking:
+            self.image = self.images[self.index]
+            self.rect.width = self.stand_pos_width
+        else:
+            self.image = self.images1[(self.index)]
+            self.rect.width = self.duck_pos_width
+
+        self.rect = self.rect.move(self.movement)
         self.checkbounds()
+        self.frame += 1
 
     def get_mask(self):
         return pygame.mask.from_surface(self.image)
 
 
-# Ground enemy
-class Snowman(pygame.sprite.Sprite):
-    def __init__(self, gamespeed, sizex=-1, sizey=-1):
-        pygame.sprite.Sprite.__init__(self)
-        self.images, self.rect = load_sprite_sheet('snowman4.png', 4, 1, sizex, sizey, -1)
-        self.rect.bottom = GROUND_LEVEL
-        self.rect.left = width + self.rect.width
-        self.image = self.images[0]
+class Enemy:
+    def __init__(self, gamespeed):
+        if random.choice(range(6)) > 2:
+            self.type_ = 1 # snowman
+            self.images, self.rect = load_sprite_sheet('snowman4.png', 4, 1, 64, 64, -1)
+            self.image = self.images[0]
+            self.rect.bottom = GROUND_LEVEL
+            self.rect.left = width + self.rect.width
+        else:
+            self.type_ = 2 # bird
+            self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, 75, 90, -1)
+            self.image = self.images[0]
+            #self.bird_height = [height * 0.80, height * 0.90]
+            self.bird_height = [height * 0.80, height * 0.80, height * 0.80, height * 0.90]
+            self.rect.bottom = self.bird_height[random.randrange(0, 4)]
+            self.rect.left = width + self.rect.width
         self.index = 0
         self.frame = 0
         self.movement = [-1 * gamespeed, 0]
         self.passed = False
+        self.x = self.rect.x
+        self.y = self.rect.y
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-    def walk(self):
-        if self.frame % 10 == 0:
-            self.index = (self.index + 1) % 3
-        self.image = self.images[self.index]
+    def move(self):
         self.rect = self.rect.move(self.movement)
-        self.frame = (self.frame + 1)
-        if self.rect.right < 0:
-            self.kill()
 
     def collide(self, penguin):
         # Checking for collision using get mask function
         player_mask = penguin.get_mask()
         obj_mask = pygame.mask.from_surface(self.image)
-        obj_offset = (self.rect.x - penguin.rect.x, self.rect.y - round(penguin.rect.y))
+        obj_offset = (round(self.rect.x - penguin.rect.x), self.rect.y - round(penguin.rect.y))
+        collision_point = player_mask.overlap(obj_mask, obj_offset)
+        if collision_point:
+            return True
+        return False
+
+    def draw(self, screen):
+        self.image = self.images[self.index]
+        if self.type_ == 1:
+            if self.frame % 10 == 0:
+                self.index = (self.index + 1) % 3
+
+        if self.type_ == 2:
+            if self.frame % 6 == 0:
+                # high birds have 1 frame of animation less for the old version
+                if self.rect.bottom == (height * 0.90):
+                    self.index = (self.index + 1) % 4
+                if self.rect.bottom != (height * 0.90):
+                    self.index = (self.index + 1) % 3
+
+        self.frame = (self.frame + 1)
+        screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, RED, self.rect, 2)
+
+
+# Bonus item
+class Fish:
+    def __init__(self, x, y):
+        self.image, self.rect = load_image('fisch3.png', x, y, -1)
+        self.fish_height = [height * 0.59, height * 0.75, height * 0.82]
+        self.rect.bottom = self.fish_height[random.randrange(0, 3)]
+        self.rect.left = width + self.rect.width
+        self.speed = 18
+        self.movement = [-1 * self.speed, 0]
+        self.passed = False
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def move(self):
+        self.rect = self.rect.move(self.movement)
+
+
+    def collide(self, penguin):
+        # Checking for collision using get mask function
+        player_mask = penguin.get_mask()
+        obj_mask = pygame.mask.from_surface(self.image)
+        obj_offset = (round(self.rect.x - penguin.rect.x), self.rect.y - round(penguin.rect.y))
         collision_point = player_mask.overlap(obj_mask, obj_offset)
         if collision_point:
             return True
         return False
 
 
-def draw_window(penguins, snowmen, obj_ind, score):
-    for snowman in snowmen:
-        snowman.draw(screen)
-        snowman.update()
+def draw_window(scrollingBg, penguins, fishes, enemies, score, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode):
+    # define elements on screen
+    scrollingBg.draw()
     for penguin in penguins:
         penguin.draw(screen)
-        penguin.update()
-        if DRAW_LINES:
-            try:
-                pygame.draw.line(screen, GREEN, (penguin.rect.right, penguin.rect.centery),
-                                 snowmen[obj_ind].rect.midtop,
-                                 2)
-            finally:
-                pass
-        # draw bird
-    show_score(score, penguins)
 
+    for enemy in enemies:
+        enemy.draw(screen)
+        enemy.move()
+    for fish in fishes:
+        fish.draw(screen)
+        fish.move()
+
+    show_score(score, penguins, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode)
     pygame.display.update()
 
 
+def remove_penguin(index):
+    penguins.pop(index)
+    ge.pop(index)
+    nets.pop(index)
+
+
 def main(genomes, config):
+    global penguins, nets, ge, snowmen, birds, fishes
     global GENERATION
+    global x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e
     GENERATION += 1
     gamespeed = 4
+    bg_speed = 4
+    fehlercode = 0
+    # scrolling of background to the left
+    scrollingBg = Background(-1 * bg_speed)
 
+    # penguins, neural network and genomes
     penguins = []
     nets = []
     ge = []
 
-    score = 0
 
-    # scrolling of background to the left
-    scrollingBg = Background(-1 * gamespeed)
+    # Create list of obstacle class objects
+    enemies = [Enemy(gamespeed)]
+    fishes = [Fish(45, 25)]
+
+    frame = 0
+    score = 0
 
     # List of Genomes
     # we need the underscore to loop through the indexes of the genomes
     for _, genome in genomes:
-        genome.fitness = 0  # start with fitness level of 0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
         penguin = (Penguin(72, 64))
@@ -250,17 +311,9 @@ def main(genomes, config):
         genome.fitness = 0  # start with fitness level of 0
         ge.append(genome)
 
-    # Creating list of obstacle class objects
-    snowmen = [Snowman(gamespeed, 64, 64)]
-
     run = True
-    while run:
+    while run and len(penguins):
         clock.tick(FPS)
-        # frame = 0
-        # frame += 1
-        # score increases every 1/4 second
-        # if frame % 10 == 0:
-        # score += 1
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -268,92 +321,104 @@ def main(genomes, config):
                 pygame.quit()
                 quit()
 
-        # snowman index is 0
-        obj_ind = 0
-        if len(penguins) > 0:
-            # to check which snowman; if penguin passes the first snowman then change index to 1
-            if len(snowmen) > 1 and penguins[0].rect.x > snowmen[0].rect.x + snowmen[0].rect.x:
-                obj_ind = 1
-        else:
-            break
+        for penguin in penguins:
+            x_wert_p = str(penguin.x)
+            x_wert_rect_p = str(penguin.rect.x)
 
-        for x, penguin in enumerate(penguins):  # give each penguin a fitness of 0.1 for each frame it stays alive
+        for enemy in enemies:
+            x_wert_e = str(enemy.x)
+            x_wert_rect_e = str(enemy.rect.x)
+
+        for x, penguin in enumerate(penguins):
+            penguin.move()
             ge[x].fitness += 0.1
-            penguin.walk()
+
+            # enemy index and fish index is 0
+            enemy_ind = 0
+            fish_ind = 0
+            if len(penguins) > 0:
+                # to check which snowman; if penguin passes the first snowman then change index to 1
+                if len(enemies) > 1 and penguins[0].rect.x > enemies[0].rect.x + enemies[0].rect.width:
+                    enemy_ind = 1
+                if len(fishes) > 1 and penguins[0].rect.x > fishes[0].rect.x + fishes[0].rect.width:
+                    fish_ind = 1
+            else:
+                break
 
             # check for the distance between penguin and the snowman
             output = nets[penguins.index(penguin)].activate((penguin.rect.x,
-                                                             abs(penguin.rect.right - snowmen[obj_ind].rect.left)))
+                                                             abs(enemies[enemy_ind].rect.x - penguin.rect.x),
+                                                             abs(enemies[enemy_ind].rect.y - penguin.rect.y),
+                                                             abs(fishes[fish_ind].rect.x - penguin.rect.x),
+                                                             abs(fishes[fish_ind].rect.y - penguin.rect.x)))
 
             if output[0] > 0.5:
                 penguin.jump()
+            if output[1] > 0.5:
+                penguin.duck()
+            else:
+                penguin.unduck()
 
-        add_obs = False
         rem = []
 
-        for snowman in snowmen:
-            snowman.walk()
-
-            # check for collision
+        for fish in fishes:
             for x, penguin in enumerate(penguins):
-            # for x, penguin in enumerate(penguins):
-                if snowman.collide(penguin):
-                    # every time penguin collides we reduce the fitness by -1
-                    # ge[penguins.index(penguin)].fitness -= 1
-                    # nets.pop(penguins.index(penguin))
-                    # ge.pop(penguins.index(penguin))
-                    # penguins.pop(penguins.index(penguin))
-                    ge[x].fitness -= 1
-                    # remove the penguin object
-                    penguins.pop(x)
-                    # remove the neural network associated to this penguin
-                    nets.pop(x)
-                    # remove the neural network associated to this penguuin
-                    ge.pop(x)
+                if fish.collide(penguin):
+                    ge[x].fitness += 50
+                    score += 50
+                    for fish in fishes:
+                        fishes.remove(fish)
+                        fishes.append(Fish(45, 25))
+                elif fish.rect.right <= 0:
+                        for fish in fishes:
+                            fishes.remove(fish)
+                            fishes.append(Fish(45, 25))
 
-            # for removing the obs
-            if snowman.rect.right < 0:
-                rem.append(snowman)
+            #     if fish.passed and random.randrange(0, 50) == 3:
+          #          fishes.append(Fish(45, 25))
 
-            # to see if obs has crossed the player
-            if not snowman.passed and snowman.rect.x < penguin.rect.x:
-                snowman.passed = True
-             #   add_obs = True
-
-           # if add_obs:
-                score += 1
-                for g in ge:
-                    g.fitness += 5
-                snowmen.append(Snowman(gamespeed, 64, 64))
-
-            snowman.walk()
-
-            # removing obstacles which has crossed
             for r in rem:
-                snowmen.remove(r)
+                rem.remove(r)
+                fehlercode = 1
 
+        for enemy in enemies:
+            enemy.move()
             for x, penguin in enumerate(penguins):
-                if penguin.rect.top > 605:
-                    nets.pop(x)
-                    ge.pop(x)
-                    penguins.pop(x)
+                if enemy.collide(penguin):
+                    ge[x].fitness -= 1
+                    remove_penguin(x)
 
-        # penguin.update()
+             #   if enemy.passed and penguin.rect.x < enemy.rect.x:
+                #if penguin.rect.x > enemy.rect.x:
+              #      enemy.passed = True
+               #     add_enemy = True
 
-        scrollingBg.draw()
+                if (enemy.rect.x) <= 0:
+                 #   rem.append(enemy)
+                    for enemy in enemies:
+                        enemies.remove(enemy)
+                        enemies.append(Enemy(gamespeed))
+                        for g in ge:
+                            g.fitness += 5
+
+            enemy.move()
+
+        for penguin in penguins:
+            penguin.move()
+
+        # score increases every 1/4 second
+        if frame % 10 == 0:
+            score += 1
+
+        if frame % 800 == 799:
+            bg_speed -= 1
+            gamespeed += 1
+
+        draw_window(scrollingBg, penguins, fishes, enemies, score, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode)
         scrollingBg.update()
-        draw_window(penguins, snowmen, obj_ind, score)
-        # for penguin in penguins:
-        # penguin.update()
-        # penguin.draw(screen)
-        # snowman.draw(screen)
-        # show_score(score, 10, 10)
+        frame += 1
 
         pygame.display.update()
-
-        # increase speed by time
-        # if frame % 800 == 799:
-        #    frame = (frame + 1)
 
 
 def run(config_path):

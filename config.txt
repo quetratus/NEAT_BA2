@@ -2,9 +2,9 @@
 # determine the best penguin (penguin with the highest fitness)
 fitness_criterion     = max 
 # what number the penguin needs to reach, no further generations
-fitness_threshold     = 1000
+fitness_threshold     = 2000
 #population size of 1 generation 
-pop_size              = 20
+pop_size              = 50
 reset_on_extinction   = False
 
 [DefaultGenome]
@@ -51,8 +51,8 @@ node_delete_prob        = 0.2
 # network parameters
 #setting the default the input and output neutrons
 num_hidden              = 0
-num_inputs              = 2
-num_outputs             = 1
+num_inputs              = 5
+num_outputs             = 2
 
 # node response options
 response_init_mean      = 1.0

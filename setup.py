@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
+import os
 
 # start up pygame
 pygame.init()
@@ -13,8 +14,8 @@ pygame.display.set_caption("DeepRunnerAI")
 
 font = pygame.font.Font('freesansbold.ttf', 20)
 
-GROUND_LEVEL = int(height*0.83)
-X_POSITION = int(width/15)
+GROUND_LEVEL = round(height * 0.83)
+X_POSITION = round(width / 15)
 
 # Define colours
 RED = (255, 0, 0)
@@ -27,12 +28,10 @@ BLACK = (0, 0, 0)
 FPS = 40
 
 # set gravity and highscore
-GRAVITY = 2.3
+GRAVITY = 0.5
 DRAW_LINES = False
 gamespeed = 4
-startgamespeed = 4
-highscore = 0
-walkspeed = 0.5
-debug = 0
 
 GENERATION = 0
+
+#pygame.time.set_timer(USEREVENT + 1, random.randrange(1000, 10000))
