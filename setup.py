@@ -29,9 +29,4 @@ FPS = 40
 
 # set gravity and highscore
 GRAVITY = 0.5
-DRAW_LINES = False
-gamespeed = 4
-
 GENERATION = 0
-
-#pygame.time.set_timer(USEREVENT + 1, random.randrange(1000, 10000))

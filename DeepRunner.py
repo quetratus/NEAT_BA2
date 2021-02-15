@@ -54,20 +54,14 @@ def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
 
 
 # show score
-def show_score(score, penguins, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode):
+def show_score(score, penguins):
     font = pygame.font.Font('freesansbold.ttf', 18)
     score_value = font.render("Score : " + str(score), True, WHITE)
     screen.blit(score_value, (10, 10))
     score_value = font.render("Gens: " + str(GENERATION - 1), True, WHITE)
     screen.blit(score_value, (10, 30))
-    score_value = font.render("Alive: " + str(len(penguins)), True,WHITE)
+    score_value = font.render("Alive: " + str(len(penguins)), True, WHITE)
     screen.blit(score_value, (10, 50))
-    score_value = font.render("Penguin x: " + str(x_wert_p) + str(x_wert_rect_p), True, WHITE)
-    screen.blit(score_value, (10, 70))
-    score_value = font.render("Enemy x: " + str(x_wert_e) + str(x_wert_rect_e), True, WHITE)
-    screen.blit(score_value, (10, 90))
-    score_value = font.render("Fehlercode: " + str(fehlercode), True, WHITE)
-    screen.blit(score_value, (10, 110))
 
 
 # show background
@@ -103,14 +97,10 @@ class Penguin:
         # positions character
         self.rect.bottom = GROUND_LEVEL
         self.rect.left = X_POSITION
-        self.rect.bottom = GROUND_LEVEL
-        self.rect.left = X_POSITION
-        # animation
         self.image = self.images[0]
         self.image1 = self.images1[0]
         self.index = 0
         self.frame = 0
-        self.score = 0
         self.isJumping = False
         self.isDucking = False
         self.movement = [0, 0]
@@ -123,12 +113,13 @@ class Penguin:
     # draw self
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, GREEN, self.rect, 2)
+        # pygame.draw.rect(screen, GREEN, self.rect, 2)
 
     def jump(self):
         if self.rect.bottom == GROUND_LEVEL:
             self.isJumping = True
-            self.movement[1] = -1*self.jumpSpeed
+            self.isDucking = False
+            self.movement[1] = -1 * self.jumpSpeed
 
     def duck(self):
         if not self.isJumping:
@@ -153,13 +144,13 @@ class Penguin:
             self.index = (self.index + 1) % 2
             self.index = 1
         elif self.frame % 5 == 0:
-                self.index = (self.index + 1) % 5
+            self.index = (self.index + 1) % 5
 
         if not self.isDucking:
             self.image = self.images[self.index]
             self.rect.width = self.stand_pos_width
         else:
-            self.image = self.images1[(self.index)]
+            self.image = self.images1[self.index]
             self.rect.width = self.duck_pos_width
 
         self.rect = self.rect.move(self.movement)
@@ -173,23 +164,22 @@ class Penguin:
 class Enemy:
     def __init__(self, gamespeed):
         if random.choice(range(6)) > 2:
-            self.type_ = 1 # snowman
+            self.type_ = 1  # snowman
             self.images, self.rect = load_sprite_sheet('snowman4.png', 4, 1, 64, 64, -1)
             self.image = self.images[0]
             self.rect.bottom = GROUND_LEVEL
             self.rect.left = width + self.rect.width
         else:
-            self.type_ = 2 # bird
+            self.type_ = 2  # bird
             self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, 75, 90, -1)
             self.image = self.images[0]
-            #self.bird_height = [height * 0.80, height * 0.90]
+            # self.bird_height = [height * 0.80, height * 0.90]
             self.bird_height = [height * 0.80, height * 0.80, height * 0.80, height * 0.90]
             self.rect.bottom = self.bird_height[random.randrange(0, 4)]
             self.rect.left = width + self.rect.width
         self.index = 0
         self.frame = 0
         self.movement = [-1 * gamespeed, 0]
-        self.passed = False
         self.x = self.rect.x
         self.y = self.rect.y
 
@@ -222,7 +212,7 @@ class Enemy:
 
         self.frame = (self.frame + 1)
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, RED, self.rect, 2)
+        # pygame.draw.rect(screen, RED, self.rect, 2)
 
 
 # Bonus item
@@ -242,7 +232,6 @@ class Fish:
     def move(self):
         self.rect = self.rect.move(self.movement)
 
-
     def collide(self, penguin):
         # Checking for collision using get mask function
         player_mask = penguin.get_mask()
@@ -254,7 +243,7 @@ class Fish:
         return False
 
 
-def draw_window(scrollingBg, penguins, fishes, enemies, score, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode):
+def draw_window(scrollingBg, penguins, fishes, enemies, score):
     # define elements on screen
     scrollingBg.draw()
     for penguin in penguins:
@@ -267,7 +256,7 @@ def draw_window(scrollingBg, penguins, fishes, enemies, score, x_wert_p, x_wert_
         fish.draw(screen)
         fish.move()
 
-    show_score(score, penguins, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode)
+    show_score(score, penguins)
     pygame.display.update()
 
 
@@ -278,13 +267,11 @@ def remove_penguin(index):
 
 
 def main(genomes, config):
-    global penguins, nets, ge, snowmen, birds, fishes
+    global penguins, nets, ge
     global GENERATION
-    global x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e
     GENERATION += 1
     gamespeed = 4
     bg_speed = 4
-    fehlercode = 0
     # scrolling of background to the left
     scrollingBg = Background(-1 * bg_speed)
 
@@ -292,7 +279,6 @@ def main(genomes, config):
     penguins = []
     nets = []
     ge = []
-
 
     # Create list of obstacle class objects
     enemies = [Enemy(gamespeed)]
@@ -320,14 +306,6 @@ def main(genomes, config):
                 run = False
                 pygame.quit()
                 quit()
-
-        for penguin in penguins:
-            x_wert_p = str(penguin.x)
-            x_wert_rect_p = str(penguin.rect.x)
-
-        for enemy in enemies:
-            x_wert_e = str(enemy.x)
-            x_wert_rect_e = str(enemy.rect.x)
 
         for x, penguin in enumerate(penguins):
             penguin.move()
@@ -359,8 +337,6 @@ def main(genomes, config):
             else:
                 penguin.unduck()
 
-        rem = []
-
         for fish in fishes:
             for x, penguin in enumerate(penguins):
                 if fish.collide(penguin):
@@ -370,16 +346,9 @@ def main(genomes, config):
                         fishes.remove(fish)
                         fishes.append(Fish(45, 25))
                 elif fish.rect.right <= 0:
-                        for fish in fishes:
-                            fishes.remove(fish)
-                            fishes.append(Fish(45, 25))
-
-            #     if fish.passed and random.randrange(0, 50) == 3:
-          #          fishes.append(Fish(45, 25))
-
-            for r in rem:
-                rem.remove(r)
-                fehlercode = 1
+                    for fish in fishes:
+                        fishes.remove(fish)
+                        fishes.append(Fish(45, 25))
 
         for enemy in enemies:
             enemy.move()
@@ -388,13 +357,7 @@ def main(genomes, config):
                     ge[x].fitness -= 1
                     remove_penguin(x)
 
-             #   if enemy.passed and penguin.rect.x < enemy.rect.x:
-                #if penguin.rect.x > enemy.rect.x:
-              #      enemy.passed = True
-               #     add_enemy = True
-
-                if (enemy.rect.x) <= 0:
-                 #   rem.append(enemy)
+                if enemy.rect.x <= 0:
                     for enemy in enemies:
                         enemies.remove(enemy)
                         enemies.append(Enemy(gamespeed))
@@ -414,7 +377,7 @@ def main(genomes, config):
             bg_speed -= 1
             gamespeed += 1
 
-        draw_window(scrollingBg, penguins, fishes, enemies, score, x_wert_p, x_wert_rect_p, x_wert_e, x_wert_rect_e, fehlercode)
+        draw_window(scrollingBg, penguins, fishes, enemies, score)
         scrollingBg.update()
         frame += 1
 
@@ -422,7 +385,7 @@ def main(genomes, config):
 
 
 def run(config_path):
-   # runs the NEAT algorithm to train the neural network, and sets location for the config file
+    # runs the NEAT algorithm to train the neural network, and sets location for the config file
     config = neat.config.Config(
         neat.DefaultGenome,
         neat.DefaultReproduction,
