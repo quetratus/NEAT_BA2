@@ -1,246 +1,21 @@
-from setup import *
+from game_env import *
 import neat
+import visualize
+import csv
+from numpy import *
 
-
-# create graphical objects (non-animated and animated respectively)
-def load_image(name, sizex=-1, sizey=-1, colorkey=None, ):
-    fullname = os.path.join('img', name)
-    image = pygame.image.load(fullname)
-    image = image.convert()
-
-    if colorkey is not None:
-        if colorkey is -1:
-            colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey, RLEACCEL)
-
-    if sizex != -1 or sizey != -1:
-        image = pygame.transform.scale(image, (sizex, sizey))
-
-    return image, image.get_rect()
-
-
-def load_sprite_sheet(sheetname, nx, ny, scalex=-1, scaley=-1, colorkey=None, ):
-    fullname = os.path.join('img', sheetname)
-    sheet = pygame.image.load(fullname)
-    sheet = sheet.convert()
-
-    sheet_rect = sheet.get_rect()
-
-    sprites = []
-
-    sizex = sheet_rect.width / nx
-    sizey = sheet_rect.height / ny
-
-    for i in range(0, ny):
-        for j in range(0, nx):
-            rect = pygame.Rect((j * sizex, i * sizey, sizex, sizey))
-            image = pygame.Surface(rect.size)
-            image = image.convert()
-            image.blit(sheet, (0, 0), rect)
-
-            if colorkey is not None:
-                if colorkey is -1:
-                    colorkey = image.get_at((0, 0))
-                image.set_colorkey(colorkey, RLEACCEL)
-
-            if scalex != -1 or scaley != -1:
-                image = pygame.transform.scale(image, (scalex, scaley))
-
-            sprites.append(image)
-
-    sprite_rect = sprites[0].get_rect()
-
-    return sprites, sprite_rect
-
+# Credit zoharehan/AI-Plays-Chrome-Dino-Game
 
 # show score
 def show_score(score, penguins):
-    font = pygame.font.Font('freesansbold.ttf', 18)
+    highscore_value = font.render("Highscore : " + str(highscore), True, WHITE)
+    screen.blit(highscore_value, (10, 10))
     score_value = font.render("Score : " + str(score), True, WHITE)
-    screen.blit(score_value, (10, 10))
-    score_value = font.render("Gens: " + str(GENERATION - 1), True, WHITE)
     screen.blit(score_value, (10, 30))
-    score_value = font.render("Alive: " + str(len(penguins)), True, WHITE)
+    score_value = font.render("Gens: " + str(GENERATION - 1), True, WHITE)
     screen.blit(score_value, (10, 50))
-
-
-# show background
-class Background:
-    def __init__(self, bg_speed):
-        self.image, self.rect = load_image('bg_happy.png', -1, -1, 1)
-        self.image1, self.rect1 = load_image('bg_happy.png', -1, -1, 1)
-        self.rect.bottom = height
-        self.rect1.bottom = height
-        self.rect1.left = self.rect.right
-        self.speed = bg_speed
-
-    def draw(self):
-        screen.blit(self.image, self.rect)
-        screen.blit(self.image1, self.rect1)
-
-    def update(self):
-        self.rect.left += self.speed
-        self.rect1.left += self.speed
-
-        if self.rect.right < 0:
-            self.rect.left = self.rect1.right
-
-        if self.rect1.right < 0:
-            self.rect1.left = self.rect.right
-
-
-# Player character
-class Penguin:
-    def __init__(self, sizex=-1, sizey=-1):
-        self.images, self.rect = load_sprite_sheet('jump6.png', 6, 1, sizex, sizey, -1)
-        self.images1, self.rect1 = load_sprite_sheet('slide_die.png', 3, 1, sizex, sizey, -1)
-        # positions character
-        self.rect.bottom = GROUND_LEVEL
-        self.rect.left = X_POSITION
-        self.image = self.images[0]
-        self.image1 = self.images1[0]
-        self.index = 0
-        self.frame = 0
-        self.isJumping = False
-        self.isDucking = False
-        self.movement = [0, 0]
-        self.jumpSpeed = 10
-        self.x = self.rect.x
-        self.y = self.rect.y
-        self.stand_pos_width = self.rect.width
-        self.duck_pos_width = self.rect1.width
-
-    # draw self
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-        # pygame.draw.rect(screen, GREEN, self.rect, 2)
-
-    def jump(self):
-        if self.rect.bottom == GROUND_LEVEL:
-            self.isJumping = True
-            self.isDucking = False
-            self.movement[1] = -1 * self.jumpSpeed
-
-    def duck(self):
-        if not self.isJumping:
-            self.isDucking = True
-
-    def unduck(self):
-        self.isDucking = False
-
-    def checkbounds(self):
-        if self.rect.bottom > GROUND_LEVEL:
-            self.rect.bottom = GROUND_LEVEL
-            self.isJumping = False
-
-    def move(self):
-        if self.isJumping:
-            self.movement[1] = self.movement[1] + GRAVITY
-
-        if self.isJumping:
-            self.index = 0
-        # walking animation
-        elif self.isDucking:
-            self.index = (self.index + 1) % 2
-            self.index = 1
-        elif self.frame % 5 == 0:
-            self.index = (self.index + 1) % 5
-
-        if not self.isDucking:
-            self.image = self.images[self.index]
-            self.rect.width = self.stand_pos_width
-        else:
-            self.image = self.images1[self.index]
-            self.rect.width = self.duck_pos_width
-
-        self.rect = self.rect.move(self.movement)
-        self.checkbounds()
-        self.frame += 1
-
-    def get_mask(self):
-        return pygame.mask.from_surface(self.image)
-
-
-class Enemy:
-    def __init__(self, gamespeed):
-        if random.choice(range(6)) > 2:
-            self.type_ = 1  # snowman
-            self.images, self.rect = load_sprite_sheet('snowman4.png', 4, 1, 64, 64, -1)
-            self.image = self.images[0]
-            self.rect.bottom = GROUND_LEVEL
-            self.rect.left = width + self.rect.width
-        else:
-            self.type_ = 2  # bird
-            self.images, self.rect = load_sprite_sheet('vogel3.png', 4, 1, 75, 90, -1)
-            self.image = self.images[0]
-            # self.bird_height = [height * 0.80, height * 0.90]
-            self.bird_height = [height * 0.80, height * 0.80, height * 0.80, height * 0.90]
-            self.rect.bottom = self.bird_height[random.randrange(0, 4)]
-            self.rect.left = width + self.rect.width
-        self.index = 0
-        self.frame = 0
-        self.movement = [-1 * gamespeed, 0]
-        self.x = self.rect.x
-        self.y = self.rect.y
-
-    def move(self):
-        self.rect = self.rect.move(self.movement)
-
-    def collide(self, penguin):
-        # Checking for collision using get mask function
-        player_mask = penguin.get_mask()
-        obj_mask = pygame.mask.from_surface(self.image)
-        obj_offset = (round(self.rect.x - penguin.rect.x), self.rect.y - round(penguin.rect.y))
-        collision_point = player_mask.overlap(obj_mask, obj_offset)
-        if collision_point:
-            return True
-        return False
-
-    def draw(self, screen):
-        self.image = self.images[self.index]
-        if self.type_ == 1:
-            if self.frame % 10 == 0:
-                self.index = (self.index + 1) % 3
-
-        if self.type_ == 2:
-            if self.frame % 6 == 0:
-                # high birds have 1 frame of animation less for the old version
-                if self.rect.bottom == (height * 0.90):
-                    self.index = (self.index + 1) % 4
-                if self.rect.bottom != (height * 0.90):
-                    self.index = (self.index + 1) % 3
-
-        self.frame = (self.frame + 1)
-        screen.blit(self.image, self.rect)
-        # pygame.draw.rect(screen, RED, self.rect, 2)
-
-
-# Bonus item
-class Fish:
-    def __init__(self, x, y):
-        self.image, self.rect = load_image('fisch3.png', x, y, -1)
-        self.fish_height = [height * 0.59, height * 0.75, height * 0.82]
-        self.rect.bottom = self.fish_height[random.randrange(0, 3)]
-        self.rect.left = width + self.rect.width
-        self.speed = 18
-        self.movement = [-1 * self.speed, 0]
-        self.passed = False
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-    def move(self):
-        self.rect = self.rect.move(self.movement)
-
-    def collide(self, penguin):
-        # Checking for collision using get mask function
-        player_mask = penguin.get_mask()
-        obj_mask = pygame.mask.from_surface(self.image)
-        obj_offset = (round(self.rect.x - penguin.rect.x), self.rect.y - round(penguin.rect.y))
-        collision_point = player_mask.overlap(obj_mask, obj_offset)
-        if collision_point:
-            return True
-        return False
+    score_value = font.render("Alive: " + str(len(penguins)), True, WHITE)
+    screen.blit(score_value, (10, 70))
 
 
 def draw_window(scrollingBg, penguins, fishes, enemies, score):
@@ -257,7 +32,6 @@ def draw_window(scrollingBg, penguins, fishes, enemies, score):
         fish.move()
 
     show_score(score, penguins)
-    pygame.display.update()
 
 
 def remove_penguin(index):
@@ -269,8 +43,9 @@ def remove_penguin(index):
 def main(genomes, config):
     global penguins, nets, ge
     global GENERATION
+    global highscore
     GENERATION += 1
-    gamespeed = 4
+    gamespeed = 6
     bg_speed = 4
     # scrolling of background to the left
     scrollingBg = Background(-1 * bg_speed)
@@ -290,12 +65,12 @@ def main(genomes, config):
     # List of Genomes
     # we need the underscore to loop through the indexes of the genomes
     for _, genome in genomes:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        nets.append(net)
+        net = neat.nn.FeedForwardNetwork.create(genome, config) # init the KNN
+        nets.append(net) # add the network to the list of networks
         penguin = (Penguin(72, 64))
-        penguins.append(penguin)
+        penguins.append(penguin) # add penguin to the list of penguins
         genome.fitness = 0  # start with fitness level of 0
-        ge.append(genome)
+        ge.append(genome) # add the genome to the list of genomes
 
     run = True
     while run and len(penguins):
@@ -309,7 +84,7 @@ def main(genomes, config):
 
         for x, penguin in enumerate(penguins):
             penguin.move()
-            ge[x].fitness += 0.1
+            ge[x].fitness += 0.01
 
             # enemy index and fish index is 0
             enemy_ind = 0
@@ -324,24 +99,29 @@ def main(genomes, config):
                 break
 
             # check for the distance between penguin and the snowman
-            output = nets[penguins.index(penguin)].activate((penguin.rect.x,
+            # and get the output from the gene (ANN) after feeding necessary inputs
+            output = nets[penguins.index(penguin)].activate((
+                                                            penguin.rect.y,
                                                              abs(enemies[enemy_ind].rect.x - penguin.rect.x),
                                                              abs(enemies[enemy_ind].rect.y - penguin.rect.y),
                                                              abs(fishes[fish_ind].rect.x - penguin.rect.x),
-                                                             abs(fishes[fish_ind].rect.y - penguin.rect.x)))
+                                                             abs(fishes[fish_ind].rect.y - penguin.rect.x)
+                                                            ))
 
+            # Perform duck or jump according to the ouput
             if output[0] > 0.5:
                 penguin.jump()
             if output[1] > 0.5:
                 penguin.duck()
             else:
+                # penguin is running
                 penguin.unduck()
 
         for fish in fishes:
             for x, penguin in enumerate(penguins):
                 if fish.collide(penguin):
-                    ge[x].fitness += 50
-                    score += 50
+                    ge[x].fitness += 0.1
+                    score += 5
                     for fish in fishes:
                         fishes.remove(fish)
                         fishes.append(Fish(45, 25))
@@ -354,6 +134,7 @@ def main(genomes, config):
             enemy.move()
             for x, penguin in enumerate(penguins):
                 if enemy.collide(penguin):
+                    # Reduce the fitness of that penguin by 1
                     ge[x].fitness -= 1
                     remove_penguin(x)
 
@@ -361,9 +142,10 @@ def main(genomes, config):
                     for enemy in enemies:
                         enemies.remove(enemy)
                         enemies.append(Enemy(gamespeed))
+                        score += 1
+                        # Increase the fitness of every genome that has survived by 1
                         for g in ge:
-                            g.fitness += 5
-
+                            g.fitness += 1
             enemy.move()
 
         for penguin in penguins:
@@ -373,18 +155,41 @@ def main(genomes, config):
         if frame % 10 == 0:
             score += 1
 
-        if frame % 800 == 799:
-            bg_speed -= 1
-            gamespeed += 1
-
         draw_window(scrollingBg, penguins, fishes, enemies, score)
         scrollingBg.update()
         frame += 1
+
+        if score % 10 == 0:
+            row = [GENERATION, score]
+            with open("scores_per_generation.csv", 'a') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(row)
+            csvfile.close()
+
+        if (len(penguins)<=0) and (score > highscore):
+            highscore = score
+            row = [GENERATION, score, frame, genome.fitness]
+            with open("score_over_iterations.csv", 'a') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(row)
+            csvfile.close()
+
+        # if score reaches beyond 500, end the game
+        if score > 1000:
+            run = False
+            row = [GENERATION, score, frame, genome.fitness]
+            with open("score_over_1000.csv", 'a') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(row)
+            csvfile.close()
+            pygame.quit()
+            quit()
 
         pygame.display.update()
 
 
 def run(config_path):
+    global score
     # runs the NEAT algorithm to train the neural network, and sets location for the config file
     config = neat.config.Config(
         neat.DefaultGenome,
@@ -399,17 +204,44 @@ def run(config_path):
 
     # set output for the statistics
     p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+    statistics = neat.StatisticsReporter()
+    p.add_reporter(statistics)
 
     # call the fitness function and config file for 50 generations
     winner = p.run(main, 50)
 
-    # show final stats
+    statistics.save()
+
+    p.remove_reporter(statistics)
+
+    # show final statistics
     print('\nBest genome:\n{!s}'.format(winner))
+
+    node_names = {-1: "y-Position Penguin", -2: "distToNextObstable xPosition",
+                  -3: "distToNextObstable yPosition", -4: "distToNextBonusItem xPosition", -5: "distToNextBonusItem yPosition",
+                  0: 'Jump', 1: 'Duck', 2: 'Unduck', 3: "Nothing"}
+
+    visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.plot_stats(statistics, ylog=False, view=True)
+    visualize.plot_species(statistics, view=True)
 
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config.txt')
+    fields = ['generation', 'score']
+    with open("scores_per_generation.csv", 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+
+    fields = ['generation', 'highscore', 'frame', 'fitness']
+    with open("score_over_iterations.csv", 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+
+    fields = ['generation', 'highscore', 'frame', 'fitness']
+    with open("score_over_1000.csv", 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+
     run(config_path)
